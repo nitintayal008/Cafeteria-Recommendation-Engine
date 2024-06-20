@@ -21,7 +21,7 @@ function login() {
 }
 
 socket.on('nextDayMenu', (nextDayMenuItems) => {
-  console.log('Next day menu items:', nextDayMenuItems);
+  console.table('Next day menu items:', nextDayMenuItems);
 });
 
 socket.on('connect', () => {

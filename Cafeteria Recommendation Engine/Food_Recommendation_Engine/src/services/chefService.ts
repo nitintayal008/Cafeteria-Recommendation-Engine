@@ -1,6 +1,6 @@
 import { menuRepository } from '../repositories/menuRepository';
 import { getFoodItemForNextDay as recommendationEngineGetFoodItemForNextDay } from '../utils/recommendationEngine';
-
+ 
 export async function recommendMenu(itemIds: number[], callback: Function) {
   try {
     const recommendedItems = await menuRepository.recommendMenu(itemIds);
@@ -10,7 +10,7 @@ export async function recommendMenu(itemIds: number[], callback: Function) {
     callback({ success: false });
   }
 }
-
+ 
 export async function viewMonthlyFeedback(callback: Function) {
   try {
     const feedbackReport = await menuRepository.viewMonthlyFeedback();
@@ -20,7 +20,17 @@ export async function viewMonthlyFeedback(callback: Function) {
     callback({ success: false });
   }
 }
-
+ 
+export async function viewFeedback(itemId: number, callback: Function) {
+  try {
+    const feedback = await menuRepository.viewFeedback(itemId);
+    callback({ success: true, feedback });
+  } catch (err) {
+    console.error('Error fetching feedback:', err);
+    callback({ success: false });
+  }
+}
+ 
 export async function getFoodItemForNextDay(menuType: string, returnItemListSize: number) {
   try {
     const recommendedItems = await recommendationEngineGetFoodItemForNextDay(menuType, returnItemListSize);
@@ -30,7 +40,7 @@ export async function getFoodItemForNextDay(menuType: string, returnItemListSize
     throw err;
   }
 }
-
+ 
 export async function selectNextDayMenu(itemIds: number[]) {
   try {
     await menuRepository.setNextDayMenu(itemIds);
