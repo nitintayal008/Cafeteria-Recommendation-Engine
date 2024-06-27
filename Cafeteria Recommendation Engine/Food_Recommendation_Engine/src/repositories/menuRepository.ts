@@ -100,6 +100,11 @@ class MenuRepository {
     const [rows] = await connection.query('SELECT * FROM menu_item WHERE next_day_menu = TRUE');
     return rows;
   }
+
+  async selectNextDayMenu(itemIds: number[]) {
+    const sql = 'UPDATE menu_items SET next_day_menu = TRUE WHERE id IN (?)';
+    await connection.query(sql, [itemIds]);
+  }
 }
 
 export const menuRepository = new MenuRepository();

@@ -22,3 +22,23 @@ export async function giveFeedback({ itemId, comment, rating }: FeedbackPayload,
     callback({ success: false });
   }
 }
+
+export async function nextDayMenu(callback: Function) {
+  try {
+    const nextDayMenuItems = await menuRepository.getNextDayMenuItems();
+    callback({ success: true, nextDayMenuItems });
+  } catch (err) {
+    console.error('Error getting next day menu:', err);
+    callback({ success: false });
+  }
+}
+
+export async function saveResponseForNextDay(nextDayMenuItems: number[], callback: Function) {
+  try {
+    await menuRepository.setNextDayMenu(nextDayMenuItems);
+    callback({ success: true });
+  } catch (err) {
+    console.error('Error saving next day menu:', err);
+    callback({ success: false });
+  }
+}
