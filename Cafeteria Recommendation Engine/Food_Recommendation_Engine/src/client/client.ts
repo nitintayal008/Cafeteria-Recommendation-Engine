@@ -20,10 +20,6 @@ function login() {
   });
 }
 
-socket.on('nextDayMenu', (nextDayMenuItems) => {
-  console.table('Next day menu items:', nextDayMenuItems);
-});
-
 socket.on('connect', () => {
   console.log('Connected to the server');
   login();
@@ -31,8 +27,4 @@ socket.on('connect', () => {
 
 socket.on('disconnect', () => {
   console.log('Disconnected from the server');
-});
- 
-socket.on('nextDayMenu', (nextDayMenuItems) => {
-  console.log('Next day menu items:', nextDayMenuItems);
 });

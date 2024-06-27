@@ -48,7 +48,16 @@ export function handleEmployeeChoice(choice: string) {
       });
       break;
     case "3":
-      console.log("viewing Notifications");
+      socket.emit("nextDayMenu", (response: any) => {
+        console.log(response);
+        rl.question("PLease selce the food id in which you intrested", comment => {
+          socket.emit("saveResponseForNextDay", comment, (response: any) => {
+            console.log("you selected great food",response);
+            promptUser("employee");
+          });
+        }
+        )
+      });
       break;
     case "4":
       rl.close();

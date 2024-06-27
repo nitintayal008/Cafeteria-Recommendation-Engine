@@ -1,7 +1,7 @@
 
 import { Socket } from 'socket.io';
 import { checkFoodItemExistence, viewMenu } from '../services/adminService';
-import { giveFeedback } from '../services/employeeService';
+import { giveFeedback, nextDayMenu, saveResponseForNextDay } from '../services/employeeService';
 
 export function handleEmployeeActions(socket: Socket) {
   socket.on('viewMenu', viewMenu);
@@ -11,4 +11,6 @@ export function handleEmployeeActions(socket: Socket) {
       .then((exists: boolean) => callback(exists))
       .catch(() => callback(false)); // Handle errors, return false for simplicity
   });
+  socket.on('nextDayMenu', nextDayMenu);
+  socket.on('saveResponseForNextDay', saveResponseForNextDay);
 }
