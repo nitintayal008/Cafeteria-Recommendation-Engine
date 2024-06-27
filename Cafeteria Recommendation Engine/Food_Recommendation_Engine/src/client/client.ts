@@ -32,3 +32,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   console.log('Disconnected from the server');
 });
+ 
+socket.on('nextDayMenu', (nextDayMenuItems) => {
+  console.log('Next day menu items:', nextDayMenuItems);
+});
