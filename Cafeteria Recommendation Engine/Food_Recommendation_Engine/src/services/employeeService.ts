@@ -42,3 +42,13 @@ export async function saveResponseForNextDay(nextDayMenuItems: number[], callbac
     callback({ success: false });
   }
 }
+
+export async function viewNotification(callback: Function) {
+  try {
+    const notification = await menuRepository.viewNotification();
+    callback({ success: true, notification });
+  } catch (err) {
+    console.error('Error viewing notification:', err);
+    callback({ success: false });
+  }
+}

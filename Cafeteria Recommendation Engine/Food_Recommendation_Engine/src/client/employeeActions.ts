@@ -59,7 +59,13 @@ export function handleEmployeeChoice(choice: string) {
         )
       });
       break;
-    case "4":
+    case '4':
+      socket.emit("viewNotification", (response: any) => {
+        console.log(response);
+        promptUser("employee");
+      });
+      break;
+    case "5":
       rl.close();
       socket.close();
       console.log("Goodbye!");

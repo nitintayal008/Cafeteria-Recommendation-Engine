@@ -105,6 +105,11 @@ class MenuRepository {
     const sql = 'UPDATE menu_items SET next_day_menu = TRUE WHERE id IN (?)';
     await connection.query(sql, [itemIds]);
   }
+
+  async viewNotification() {
+    const [rows] = await connection.query('SELECT * FROM notification');
+    return rows;
+  }
 }
 
 export const menuRepository = new MenuRepository();

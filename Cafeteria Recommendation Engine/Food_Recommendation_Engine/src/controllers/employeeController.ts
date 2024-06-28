@@ -13,4 +13,5 @@ export function handleEmployeeActions(socket: Socket) {
   });
   socket.on('nextDayMenu', nextDayMenu);
   socket.on('saveResponseForNextDay', saveResponseForNextDay);
+  socket.on('viewNotification', viewNotification);
 }
