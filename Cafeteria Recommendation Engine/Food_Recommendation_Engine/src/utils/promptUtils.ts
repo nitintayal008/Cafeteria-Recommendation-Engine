@@ -25,7 +25,7 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
   } else if (role === 'employee') {
     console.log('1. View Menu');
     console.log('2. Give Feedback');
-    console.log('3. See menu for next day');
+    console.log('3. Select Food For Tomorrow');
     console.log('4. View Notification ')
     console.log('5. Exit');
   }

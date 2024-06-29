@@ -32,7 +32,7 @@ export function handleChefActions(socket: Socket) {
   socket.on('finalizeMenu', async (callback: Function) => {
     try {
       const finalMenu = await finalizeMenu();
-      callbqack({ success: true, finalMenu });
+      callback({ success: true, finalMenu });
     } catch (err) {
       console.error('Error finalizing menu:', err);
       callback({ success: false, message: 'Error finalizing menu. Please try again.' });

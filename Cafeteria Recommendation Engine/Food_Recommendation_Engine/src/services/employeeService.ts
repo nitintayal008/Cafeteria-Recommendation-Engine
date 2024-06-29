@@ -33,6 +33,29 @@ export async function nextDayMenu(callback: Function) {
   }
 }
 
+export async function getRolloutItems(callback: Function) {
+  const mealTypes = ['breakfast', 'lunch', 'dinner'];
+  let allRolledOutItems: string[] = [];
+  try {
+    const messages: string[] = [];
+
+    for (const mealType of mealTypes) {
+      const rolledOutItems = await menuRepository.getRolledOutItems(mealType);
+      console.log("nitin00", rolledOutItems);
+
+      if (rolledOutItems.length > 0) {
+        const message = `Rolled out item for ${mealType} is: ${rolledOutItems.join(', ')}`;
+        messages.push(message);
+      }
+    }
+
+    callback({ status: 'printMessage', message: messages.join('\n') });
+  } catch (err) {
+    console.error('Error getting rollout items:', err);
+    callback({ status: 'error', message: 'Error getting rollout items' });
+  }
+}
+
 export async function saveResponseForNextDay(nextDayMenuItems: number[], callback: Function) {
   try {
     await menuRepository.setNextDayMenu(nextDayMenuItems);

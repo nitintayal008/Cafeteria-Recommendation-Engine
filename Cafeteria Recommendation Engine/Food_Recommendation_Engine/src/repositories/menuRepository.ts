@@ -1,3 +1,4 @@
+import { RowDataPacket } from "mysql2";
 import connection from "../utils/database";
 import { MenuItem, MenuItemPayload } from "../utils/types";
 
@@ -115,6 +116,25 @@ class MenuRepository {
       throw error;
     }
   }
+
+   async getRolledOutItems(mealType: string) {
+    try {
+        const today = new Date().toISOString().slice(0, 10);
+        console.log('todcay:01', today);
+        const [rows] = await connection.query<RowDataPacket[]>(
+            `SELECT Menu_Item.name
+            FROM Rolledout_Item
+            JOIN Menu_Item ON Rolledout_Item.menu_item_id = Menu_Item.id
+            WHERE Rolledout_Item.date = ? AND Rolledout_Item.mealType = ?`,
+            [today, mealType]
+        );
+        console.log('rows:01', rows);
+        return rows.map(row => row.name);
+    } catch (err) {
+        console.error('Error fetching rolled out items:', err);
+        throw err;
+    }
+}
   
 }
 
