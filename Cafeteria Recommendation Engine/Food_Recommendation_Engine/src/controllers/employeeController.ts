@@ -1,7 +1,7 @@
 
 import { Socket } from 'socket.io';
 import { checkFoodItemExistence, viewMenu } from '../services/adminService';
-import { giveFeedback, nextDayMenu, saveResponseForNextDay } from '../services/employeeService';
+import { giveFeedback, nextDayMenu, saveResponseForNextDay, viewNotification } from '../services/employeeService';
 
 export function handleEmployeeActions(socket: Socket) {
   socket.on('viewMenu', viewMenu);
