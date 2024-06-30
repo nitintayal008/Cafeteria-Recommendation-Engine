@@ -90,6 +90,18 @@ export function handleChefChoice(choice: string) {
           console.log(response);
           promptUser("chef");
         });
+        case "9":
+          socket.emit("selectTodayMeal", (response: any) => {
+            console.log(response);
+            if (loggedInUser) {
+              console.log("nitin_lats");
+              selectMeal();
+            } else {
+              console.log("User not logged in");
+              promptUser("chef");
+            }
+          });
+          break;
     default:
       console.log("Invalid choice, please try again.");
       promptUser("chef");
@@ -111,3 +123,25 @@ async function rolloutFoodItems() {
   console.log("Menu items rolled out successfully.\n");
   promptUser("chef");
 }
+
+async function selectMeal() {
+  try {
+    const mealForBreakfast = await askQuestion("Enter Meal to be cooked for breakfast: ");
+    const mealForLunch = await askQuestion("Enter Meal to be cooked for lunch: ");
+    const mealForDinner = await askQuestion("Enter Meal to be cooked for dinner: ");
+
+    const meals = { mealForBreakfast, mealForLunch, mealForDinner };
+    socket.emit("saveSelectedMeal", meals, (response: any) => {
+      console.log(response);
+    });
+
+  } catch (error) {
+    console.error("Error selecting meals:", error);
+  }
+  finally {
+    setTimeout(() => {
+      promptUser("chef");
+    }, 200);
+  }
+}
+

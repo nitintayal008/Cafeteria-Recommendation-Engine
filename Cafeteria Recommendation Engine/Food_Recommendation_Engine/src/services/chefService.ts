@@ -144,3 +144,27 @@ export async function checkResponses(callback: Function) {
         }
         callback({ success: true, messages });  
 }
+
+export async function selectTodayMeal(callback: Function) {
+  const today = new Date().toISOString().slice(0, 10);
+  let messages: string[] = [];
+        const mealTimes = ['breakfast', 'lunch', 'dinner'];
+        for (const mealTime of mealTimes) {
+            const responses = await menuRepository.selectFoodToPrepare(today, mealTime);
+            responses.forEach((response: any) => {
+                const message = `Item: ${response.name}, Votes: ${response.vote_count}`;
+                messages.push(message);
+            });
+        }
+        callback({ success: true, messages });
+}
+
+export async function saveSelectedMeal(meals: { mealForBreakfast: string; mealForLunch: string; mealForDinner: string; }, callback: Function) {
+  try {
+    await menuRepository.saveSelectedMeal( meals);
+    callback({ success: true, message: 'Selected meals saved successfully.' });
+  } catch (err) {
+    console.error('Error saving selected meal:', err);
+    callback({ success: false, message: 'Error saving selected meal.' });
+  }
+}

@@ -280,6 +280,44 @@ async checkResponses(mealTime: string): Promise<string> {
   return responseString;
 }
 
+async selectFoodToPrepare(today: string, mealTime: string): Promise<RowDataPacket[]> {
+  const [responses] = await connection.query<RowDataPacket[]>(
+      `SELECT menu_item.name, COUNT(Employee_Selection.menu_item_id) as vote_count
+      FROM Employee_Selection
+      JOIN menu_item ON Employee_Selection.menu_item_id = menu_item.id
+      WHERE Employee_Selection.date = ? AND Employee_Selection.mealType = ?
+      GROUP BY Employee_Selection.menu_item_id
+      ORDER BY vote_count DESC`,
+      [today, mealTime]
+  );
+
+  return responses;
+}
+
+async saveSelectedMeal(data: { mealForBreakfast: string, mealForLunch: string, mealForDinner: string }): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [breakfastMeal] = await connection.query<RowDataPacket[]>(
+      'SELECT id FROM menu_item WHERE name = ?',
+      [data.mealForBreakfast]
+  );
+  const [lunchMeal] = await connection.query<RowDataPacket[]>(
+      'SELECT id FROM menu_item WHERE name = ?',
+      [data.mealForLunch]
+  );
+  const [dinnerMeal] = await connection.query<RowDataPacket[]>(
+      'SELECT id FROM menu_item WHERE name = ?',
+      [data.mealForDinner]
+  );
+
+  await connection.query(
+      'INSERT INTO Selected_Meal (menu_item_id, mealType, date) VALUES (?, \'breakfast\', ?), (?, \'lunch\', ?), (?, \'dinner\', ?)',
+      [breakfastMeal[0].id, today, lunchMeal[0].id, today, dinnerMeal[0].id, today]
+  );
+
+  return 'Meals for today saved successfully.';
+}
+
 }
 
 export const menuRepository = new MenuRepository();
