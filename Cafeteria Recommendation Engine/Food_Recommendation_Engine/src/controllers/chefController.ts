@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu } from '../services/chefService';
+import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation } from '../services/chefService';
 import { getFoodItemForNextDay } from '../utils/recommendationEngine';
  
 export function handleChefActions(socket: Socket) {
@@ -38,4 +38,7 @@ export function handleChefActions(socket: Socket) {
       callback({ success: false, message: 'Error finalizing menu. Please try again.' });
     }
   });
+
+  socket.on('getRecommendation', getRecommendation);
+
 }

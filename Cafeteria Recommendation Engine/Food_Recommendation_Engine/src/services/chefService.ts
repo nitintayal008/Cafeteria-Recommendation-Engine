@@ -1,5 +1,6 @@
 import { menuRepository } from '../repositories/menuRepository';
 import { getFoodItemForNextDay as recommendationEngineGetFoodItemForNextDay } from '../utils/recommendationEngine';
+import { calculateSentiments } from './recommendationService';
  
 const employeeChoices = new Map<string, number[]>();
 
@@ -78,4 +79,15 @@ export async function finalizeMenu() {
   employeeChoices.clear();
 
   return finalMenuItems;
+}
+
+export async function getRecommendation(callback: Function) {
+  try {
+    await calculateSentiments();
+    const menuItems = await menuRepository.getRecommendations();
+    callback({ success: true, menuItems });
+  } catch (err) {
+    console.error('Error getting recommendation:', err);
+    callback({ success: false });
+  }
 }

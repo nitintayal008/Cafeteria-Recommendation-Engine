@@ -51,6 +51,11 @@ export function handleChefChoice(choice: string) {
       socket.close();
       console.log('Goodbye!');
       break;
+    case '5':
+      socket.emit('getRecommendation', (response: any) => {
+        console.log(response);
+        promptUser('chef');
+      });
     default:
       console.log('Invalid choice, please try again.');
       promptUser('chef');

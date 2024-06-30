@@ -33,3 +33,17 @@ export interface User {
     price: number;
     availability: boolean;
   }
+
+  export interface RatingComment extends RowDataPacket {
+    menu_item_id: number;
+    rating: number;
+    comment: string;
+}
+
+export interface SentimentData extends RowDataPacket {
+    menu_item_id: number;
+    sentiment: string;
+    average_rating: number;
+    sentiment_score: number;
+    date_calculated: Date;
+}

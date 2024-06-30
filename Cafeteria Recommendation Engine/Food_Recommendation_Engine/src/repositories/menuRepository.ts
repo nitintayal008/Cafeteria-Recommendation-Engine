@@ -182,6 +182,24 @@ class MenuRepository {
 
     return `Menu item for ${mealTime} selected successfully.`;
 }
+
+async getRecommendations(): Promise<MenuItem[]> {
+  console.log('i am inside getRecommendations');
+  try {
+      const query = `
+      SELECT m.*, s.sentiment, s.average_rating, s.sentiment_score 
+      FROM menu_item m 
+      LEFT JOIN Sentiment s ON m.id = s.menu_item_id 
+      ORDER BY s.average_rating DESC 
+      LIMIT 5`;
+      const [menuItems] = await connection.query<MenuItem[]>(query);
+      return menuItems;
+  } catch (error) {
+      console.error(`Failed to insert sentiments: ${error}`);
+      throw new Error('Error inserting sentiments.');
+  }
+}
+
 }
 
 export const menuRepository = new MenuRepository();
