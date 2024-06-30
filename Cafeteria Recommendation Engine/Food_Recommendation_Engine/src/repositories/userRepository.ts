@@ -14,6 +14,7 @@ class UserRepository {
     const [rows] = await connection.query<User[]>('SELECT * FROM user WHERE employeeId = ? AND name = ?', [employeeId, name]);
     return rows.length > 0 ? rows[0] : null;
   }
+  
 }
 
 export const userRepository = new UserRepository();

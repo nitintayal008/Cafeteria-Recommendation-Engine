@@ -12,7 +12,7 @@ class MenuRepository {
   }
   async addMenuItem({ name, price, mealType, availability }: MenuItemPayload) {
     console.log(name, price, mealType, availability);
-  const existingItem = await this.findMenuItemByName(name);
+    const existingItem = await this.findMenuItemByName(name);
     if (existingItem) {
       throw new Error(`Menu item '${name}' already exists.`);
     }
@@ -93,49 +93,95 @@ class MenuRepository {
   }
 
   async setNextDayMenu(itemIds: number[]) {
-    await connection.query('UPDATE menu_item SET next_day_menu = FALSE');
-    await connection.query('UPDATE menu_item SET next_day_menu = TRUE WHERE id IN (?)', [itemIds]);
+    await connection.query("UPDATE menu_item SET next_day_menu = FALSE");
+    await connection.query(
+      "UPDATE menu_item SET next_day_menu = TRUE WHERE id IN (?)",
+      [itemIds]
+    );
   }
- 
+
   async getNextDayMenuItems() {
-    const [rows] = await connection.query('SELECT * FROM menu_item WHERE next_day_menu = TRUE');
+    const [rows] = await connection.query(
+      "SELECT * FROM menu_item WHERE next_day_menu = TRUE"
+    );
     return rows;
   }
 
   async selectNextDayMenu(itemIds: number[]) {
-    const sql = 'UPDATE menu_items SET next_day_menu = TRUE WHERE id IN (?)';
+    const sql = "UPDATE menu_items SET next_day_menu = TRUE WHERE id IN (?)";
     await connection.query(sql, [itemIds]);
   }
 
   async viewNotification() {
     try {
-      const [rows] = await connection.query('SELECT * FROM notification WHERE user_role = "employee" ORDER BY notification_date DESC LIMIT 10');
+      const [rows] = await connection.query(
+        'SELECT * FROM notification WHERE user_role = "employee" ORDER BY notification_date DESC LIMIT 10'
+      );
       return rows;
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       throw error;
     }
   }
 
-   async getRolledOutItems(mealType: string) {
+  async getRolledOutItems(mealType: string) {
     try {
-        const today = new Date().toISOString().slice(0, 10);
-        console.log('todcay:01', today);
-        const [rows] = await connection.query<RowDataPacket[]>(
-            `SELECT Menu_Item.name
+      const today = new Date().toISOString().slice(0, 10);
+      console.log("todcay:01", today);
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT Menu_Item.name
             FROM Rolledout_Item
             JOIN Menu_Item ON Rolledout_Item.menu_item_id = Menu_Item.id
             WHERE Rolledout_Item.date = ? AND Rolledout_Item.mealType = ?`,
-            [today, mealType]
-        );
-        console.log('rows:01', rows);
-        return rows.map(row => row.name);
+        [today, mealType]
+      );
+      console.log("rows:01", rows);
+      return rows.map((row) => row.name);
     } catch (err) {
-        console.error('Error fetching rolled out items:', err);
-        throw err;
+      console.error("Error fetching rolled out items:", err);
+      throw err;
     }
+  }
+
+  async selectMenuItem( menuItemName: string, mealTime: string, username: string): Promise<string> {
+    console.log("vb,.",menuItemName, mealTime, username );
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const date = tomorrow.toISOString().slice(0, 10);
+
+    const [empId] = await connection.query<RowDataPacket[]>('SELECT employeeId FROM User WHERE name = ?', [username]);
+    console.log("empId:01", empId);
+    if (empId.length === 0) {
+      return `User ${username} not found.`;
+    }
+
+    const [existingSelection] = await connection.query<RowDataPacket[]>(
+        'SELECT * FROM Employee_Selection WHERE emp_id = ? AND date = ? AND mealType = ?',
+        [empId[0].employeeId, date, mealTime]
+    );
+      console.log("existingSelection:01", existingSelection);
+     if (existingSelection.length > 0) {
+      console.log("i am inside");
+        return `You have already selected the ${mealTime} item for tomorrow.`;
+    }
+
+    const [menuItem] = await connection.query<RowDataPacket[]>(
+        'SELECT id FROM menu_item WHERE name = ? AND mealType = ?',
+        [menuItemName, mealTime]
+    );
+    console.log("menuItem:01", menuItem);
+
+    if (menuItem.length === 0) {
+        return `Menu item ${menuItemName} does not exist for ${mealTime}.`;
+    }
+
+    await connection.query(
+        'INSERT INTO Employee_Selection (emp_id, menu_item_id, mealType, date) VALUES (?, ?, ?, ?)',
+        [empId[0].employeeId, menuItem[0].id, mealTime, date]
+    );
+
+    return `Menu item for ${mealTime} selected successfully.`;
 }
-  
 }
 
 export const menuRepository = new MenuRepository();

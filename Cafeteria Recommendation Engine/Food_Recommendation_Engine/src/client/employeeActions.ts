@@ -1,5 +1,6 @@
-import { socket } from "./client";
-import { promptUser, rl } from "../utils/promptUtils";
+// employeeActions.ts
+import { socket, loggedInUser } from "./client";
+import { promptUser, rl, askQuestion } from "../utils/promptUtils";
 import { MenuItem } from "../utils/types";
 
 export function handleEmployeeChoice(choice: string) {
@@ -40,7 +41,6 @@ export function handleEmployeeChoice(choice: string) {
               });
             });
           } else {
-            // Item does not exist, notify and prompt for valid ID
             console.log(`Menu item with ID ${itemId} does not exist.`);
             promptUser("employee");
           }
@@ -50,6 +50,12 @@ export function handleEmployeeChoice(choice: string) {
     case "3":
       socket.emit("getRolloutItems", (response: any) => {
         console.log(response);
+        if (loggedInUser) {
+          voteTomorrowFood(loggedInUser.name);
+        } else {
+          console.log("User not logged in");
+          promptUser("employee");
+        }
       });
       break;
     case '4':
@@ -68,4 +74,24 @@ export function handleEmployeeChoice(choice: string) {
       promptUser("employee");
       break;
   }
+}
+
+async function voteTomorrowFood(username: string) {
+  const mealTypes = ['breakfast', 'lunch', 'dinner'];
+  for (const mealType of mealTypes) {
+    let item: string;
+    let exists = "false";
+    do {
+      item = await askQuestion(`Please select one item for ${mealType}: `);
+      await new Promise<void>((resolve) => {
+        socket.emit("voteFood", item, mealType, username, (result: string) => {
+          exists = result;
+          console.log(exists);
+          resolve();
+        });
+      });
+    } while (!exists);
+  }
+  console.log('Your responses have been recorded successfully.\n');
+  promptUser("employee");
 }

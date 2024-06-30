@@ -1,3 +1,4 @@
+// utils/promptUtils.ts
 import readline from 'readline';
 import { handleAdminChoice } from '../client/adminActions';
 import { handleChefChoice } from '../client/chefActions';
@@ -26,7 +27,7 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('1. View Menu');
     console.log('2. Give Feedback');
     console.log('3. Select Food For Tomorrow');
-    console.log('4. View Notification ')
+    console.log('4. View Notification');
     console.log('5. Exit');
   }
   
@@ -47,4 +48,8 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
         break;
     }
   });
+}
+
+export function askQuestion(query: string): Promise<string> {
+  return new Promise((resolve) => rl.question(query, resolve));
 }
