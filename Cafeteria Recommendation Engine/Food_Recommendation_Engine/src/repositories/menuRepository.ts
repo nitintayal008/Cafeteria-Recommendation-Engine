@@ -200,6 +200,86 @@ async getRecommendations(): Promise<MenuItem[]> {
   }
 }
 
+async getMenu(): Promise<MenuItem[]> {
+  try {
+      const query = `
+      SELECT m.*, s.sentiment, s.average_rating, s.sentiment_score 
+      FROM menu_item m 
+      LEFT JOIN Sentiment s ON m.id = s.menu_item_id`;
+      const [menuItems] = await connection.query<MenuItem[]>(query);
+      return menuItems;
+  } catch (error) {
+      console.error(`Failed to insert sentiments: ${error}`);
+      throw new Error('Error inserting sentiments.');
+  }
+}
+
+async getRecommendedItems(mealTime: string): Promise<string[]> {
+  const [recommendedItems] = await connection.query<RowDataPacket[]>(
+      `SELECT menu_item.name
+      FROM menu_item
+      JOIN Sentiment ON menu_item.id = Sentiment.menu_item_id
+      WHERE menu_item.mealType = ?
+      ORDER BY Sentiment.sentiment_score DESC, Sentiment.average_rating DESC
+      LIMIT 5`,
+      [mealTime]
+  );
+  console.log("recommendedItems:01", recommendedItems);
+
+  return recommendedItems.map(item => item.name);
+}
+
+async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [existingRollout] = await connection.query<RowDataPacket[]>(
+      'SELECT * FROM Rolledout_Item WHERE date = ? AND mealType = ?',
+      [today, mealTime]
+  );
+
+  if (existingRollout.length > 0) {
+      return 'Menu items have already been rolled out for today. Please wait until tomorrow.';
+  }
+
+  for (const itemName of itemNames) {
+      const [item] = await connection.query<RowDataPacket[]>(
+          'SELECT id FROM menu_item WHERE name = ? AND mealType = ?',
+          [itemName, mealTime]
+      );
+
+      if (item.length === 0) {
+          return `Menu item ${itemName} does not exist for ${mealTime}.`;
+      }
+
+      await connection.query(
+          'INSERT INTO Rolledout_Item (menu_item_id, mealType, date) VALUES (?, ?, ?)',
+          [item[0].menu_item_id, mealTime, today]
+      );
+  }
+
+  return `Menu items for ${mealTime} rolled out successfully.`;
+}
+
+async checkResponses(mealTime: string): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+  console.log("today:01", today, mealTime);
+  const [responses] = await connection.query<RowDataPacket[]>(
+      `SELECT menu_item.name, COUNT(Employee_Selection.menu_item_id) as vote_count
+      FROM Employee_Selection
+      JOIN menu_item ON Employee_Selection.menu_item_id = menu_item.id
+      WHERE Employee_Selection.date = ? AND Employee_Selection.mealType = ?
+      GROUP BY Employee_Selection.menu_item_id`,
+      [today, mealTime]
+  );
+  console.log("nitni_responses",responses);
+  let responseString = `--- Responses for ${mealTime} ---\n`;
+  responses.forEach((response: any) => {
+      responseString += `Item: ${response.name}, Votes: ${response.vote_count}\n`;
+  });
+
+  return responseString;
+}
+
 }
 
 export const menuRepository = new MenuRepository();

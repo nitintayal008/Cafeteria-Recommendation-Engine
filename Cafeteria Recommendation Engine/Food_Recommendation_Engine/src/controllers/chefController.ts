@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation } from '../services/chefService';
+import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation, getMenu, getTopRecommendations, rolloutFoodItem, checkResponses } from '../services/chefService';
 import { getFoodItemForNextDay } from '../utils/recommendationEngine';
  
 export function handleChefActions(socket: Socket) {
@@ -40,5 +40,8 @@ export function handleChefActions(socket: Socket) {
   });
 
   socket.on('getRecommendation', getRecommendation);
-
+  socket.on('getMenu', getMenu);
+  socket.on('getTopRecommendations', getTopRecommendations);
+  socket.on('rolloutFoodItem', rolloutFoodItem);
+  socket.on('checkResponses',checkResponses);
 }
