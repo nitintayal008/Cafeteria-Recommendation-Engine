@@ -38,7 +38,7 @@ export function handleChefActions(socket: Socket) {
       callback({ success: false, message: 'Error finalizing menu. Please try again.' });
     }
   });
-
+  socket.on('viewFeedback',viewFeedback);
   socket.on('getRecommendation', getRecommendation);
   socket.on('getMenu', getMenu);
   socket.on('getTopRecommendations', getTopRecommendations);

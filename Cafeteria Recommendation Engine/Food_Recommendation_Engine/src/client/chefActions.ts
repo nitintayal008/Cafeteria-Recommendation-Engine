@@ -59,22 +59,18 @@ export function handleChefChoice(choice: string) {
       });
       break;
     case "4":
-      rl.close();
-      socket.close();
-      console.log("Goodbye!");
-      break;
-    case "5":
       socket.emit("getRecommendation", (response: any) => {
-        console.log(response);
+        console.table(response.menuItems);
         promptUser("chef");
       });
-
-    case "6":
+      break;
+    case "5":
       socket.emit("getMenu", (response: any) => {
         console.table(response.menuItems);
         promptUser("chef");
       });
-    case "7":
+      break;
+    case "6":
       socket.emit("getTopRecommendations", (response: any) => {
         console.log(response.items);
         if (loggedInUser) {
@@ -85,23 +81,29 @@ export function handleChefChoice(choice: string) {
         }
       });
       break;
-      case "8":
-        socket.emit("checkResponses", (response: any) => {
-          console.log(response);
+    case "7":
+      socket.emit("checkResponses", (response: any) => {
+        console.log(response);
+        promptUser("chef");
+      });
+      break;
+    case "8":
+      socket.emit("selectTodayMeal", (response: any) => {
+        console.log(response);
+        if (loggedInUser) {
+          console.log("nitin_lats");
+          selectMeal();
+        } else {
+          console.log("User not logged in");
           promptUser("chef");
-        });
-        case "9":
-          socket.emit("selectTodayMeal", (response: any) => {
-            console.log(response);
-            if (loggedInUser) {
-              console.log("nitin_lats");
-              selectMeal();
-            } else {
-              console.log("User not logged in");
-              promptUser("chef");
-            }
-          });
-          break;
+        }
+      });
+      break;
+    case "9":
+      rl.close();
+      socket.close();
+      console.log("Goodbye!");
+      break;
     default:
       console.log("Invalid choice, please try again.");
       promptUser("chef");
@@ -118,7 +120,7 @@ async function rolloutFoodItems() {
       const item = await askQuestion(`Enter item ${i + 1}: `);
       items.push(item);
     }
-     socket.emit("rolloutFoodItem", mealTime, items );
+    socket.emit("rolloutFoodItem", mealTime, items);
   }
   console.log("Menu items rolled out successfully.\n");
   promptUser("chef");
@@ -126,22 +128,25 @@ async function rolloutFoodItems() {
 
 async function selectMeal() {
   try {
-    const mealForBreakfast = await askQuestion("Enter Meal to be cooked for breakfast: ");
-    const mealForLunch = await askQuestion("Enter Meal to be cooked for lunch: ");
-    const mealForDinner = await askQuestion("Enter Meal to be cooked for dinner: ");
+    const mealForBreakfast = await askQuestion(
+      "Enter Meal to be cooked for breakfast: "
+    );
+    const mealForLunch = await askQuestion(
+      "Enter Meal to be cooked for lunch: "
+    );
+    const mealForDinner = await askQuestion(
+      "Enter Meal to be cooked for dinner: "
+    );
 
     const meals = { mealForBreakfast, mealForLunch, mealForDinner };
     socket.emit("saveSelectedMeal", meals, (response: any) => {
       console.log(response);
     });
-
   } catch (error) {
     console.error("Error selecting meals:", error);
-  }
-  finally {
+  } finally {
     setTimeout(() => {
       promptUser("chef");
     }, 200);
   }
 }
-

@@ -1,5 +1,5 @@
 import { menuRepository } from '../repositories/menuRepository';
-import { NotificationDB, notificationDB } from '../repositories/notificationRepository';
+import {  notificationDB } from '../repositories/notificationRepository';
 import { getFoodItemForNextDay as recommendationEngineGetFoodItemForNextDay } from '../utils/recommendationEngine';
 import { calculateSentiments } from './recommendationService';
  

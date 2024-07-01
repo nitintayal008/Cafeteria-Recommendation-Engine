@@ -21,13 +21,12 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('1. Recommend Menu for Next Day');
     console.log('2. View Monthly Feedback Report');
     console.log('3. View Feedback');
-    console.log('4. Exit');
-    console.log('5. Check recommend food items');
-    console.log('6. See the Menu');
-    console.log('7. Rollout Food for tomorrow');
-    console.log("8. Check responses for today's meals");
-    console.log("9. Select today's meals");
-    console.log('10. View notifications');
+    console.log('4. Check recommend food items');
+    console.log('5. See the Menu');
+    console.log('6. Rollout Food for tomorrow');
+    console.log("7. Check responses for today's meals");
+    console.log("8. Select today's meals");
+    console.log('9. Exit');
   } else if (role === 'employee') {
     console.log('1. View Menu');
     console.log('2. Give Feedback');

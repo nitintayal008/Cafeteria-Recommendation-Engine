@@ -6,15 +6,19 @@ import { MenuItem } from "../utils/types";
 export function handleEmployeeChoice(choice: string) {
   switch (choice) {
     case "1":
-      socket.emit("viewMenu", (response: any) => {
-        const formattedMenuItems = response.menuItems.map((item: MenuItem) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          mealType: item.mealType,
-          availability: item.availability ? "available" : "not available",
-        }));
-        console.table(formattedMenuItems);
+      // socket.emit("viewMenu", (response: any) => {
+      //   const formattedMenuItems = response.menuItems.map((item: MenuItem) => ({
+      //     id: item.id,
+      //     name: item.name,
+      //     price: item.price,
+      //     mealType: item.mealType,
+      //     availability: item.availability ? "available" : "not available",
+      //   }));
+      //   console.table(formattedMenuItems);
+      //   promptUser("employee");
+      // });
+      socket.emit("getMenu", (response: any) => {
+        console.table(response.menuItems);
         promptUser("employee");
       });
       break;
@@ -60,7 +64,7 @@ export function handleEmployeeChoice(choice: string) {
       break;
     case '4':
       socket.emit("viewNotification", (response: any) => {
-        console.log(response);
+        console.table(response.notification);
         promptUser("employee");
       });
       break;
