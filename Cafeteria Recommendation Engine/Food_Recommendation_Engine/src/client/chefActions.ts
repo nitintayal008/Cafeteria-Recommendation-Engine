@@ -1,5 +1,5 @@
 import { response } from "express";
-import { askQuestion, promptUser, rl } from "../utils/promptUtils";
+import { askQuestion, promptUser, rl } from "../server/utils/promptUtils";
 import { loggedInUser, socket } from "./client";
 
 export function handleChefChoice(choice: string) {

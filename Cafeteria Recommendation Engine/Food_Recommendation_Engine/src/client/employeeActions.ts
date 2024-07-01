@@ -1,7 +1,7 @@
 // employeeActions.ts
 import { socket, loggedInUser } from "./client";
-import { promptUser, rl, askQuestion } from "../utils/promptUtils";
-import { MenuItem } from "../utils/types";
+import { promptUser, rl, askQuestion } from "../server/utils/promptUtils";
+import { MenuItem } from "../server/utils/types";
 
 export function handleEmployeeChoice(choice: string) {
   switch (choice) {

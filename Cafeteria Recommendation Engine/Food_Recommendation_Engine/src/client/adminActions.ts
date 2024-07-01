@@ -1,5 +1,5 @@
-import { promptUser, rl } from "../utils/promptUtils";
-import { MenuItem } from "../utils/types";
+import { promptUser, rl } from "../server/utils/promptUtils";
+import { MenuItem } from "../server/utils/types";
 import { socket } from "./client";
 
 export function handleAdminChoice(choice: string) {

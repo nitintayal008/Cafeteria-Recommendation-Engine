@@ -1,7 +1,7 @@
 import readline from 'readline';
-import { handleAdminChoice } from '../client/adminActions';
-import { handleChefChoice } from '../client/chefActions';
-import { handleEmployeeChoice } from '../client/employeeActions';
+import { handleAdminChoice } from '../../client/adminActions';
+import { handleChefChoice } from '../../client/chefActions';
+import { handleEmployeeChoice } from '../../client/employeeActions';
 
 export const rl = readline.createInterface({
   input: process.stdin,

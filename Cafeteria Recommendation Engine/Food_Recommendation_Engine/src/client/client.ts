@@ -1,6 +1,6 @@
 // client.ts
 import { io } from 'socket.io-client';
-import { promptUser, rl } from '../utils/promptUtils';
+import { promptUser, rl } from '../server/utils/promptUtils';
 
 export const socket = io('http://localhost:3000');
 export let loggedInUser: { employeeId: string, name: string } | null = null;
