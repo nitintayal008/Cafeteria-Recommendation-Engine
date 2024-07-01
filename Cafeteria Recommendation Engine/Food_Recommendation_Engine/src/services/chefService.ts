@@ -127,7 +127,11 @@ export async function rolloutFoodItem(mealTime: string, items: string[]) {
   try {
     const message = await menuRepository.rolloutMenuItems(mealTime, items);
     console.log('message', message);
-    notificationDB.createNotification('employee', `Chef has rolled out ${items} for tomorrow's ${mealTime}.`, 1);
+    if(message === 'Menu items have already been rolled out for today. Please wait until tomorrow.'){
+      return message;
+    }else{
+      notificationDB.createNotification('employee', `Chef has rolled out ${items} for tomorrow's ${mealTime}.`, 1);
+    }
     // callback({ success: true });
   } catch (err) {
     console.error('Error rolling out food item:', err);

@@ -1,6 +1,7 @@
 import { RowDataPacket } from "mysql2";
 import connection from "../utils/database";
 import { MenuItem, MenuItemPayload } from "../utils/types";
+import { notificationDB } from "./notificationRepository";
 
 class MenuRepository {
   async findMenuItemByName(name: string): Promise<MenuItem | null> {
@@ -144,6 +145,7 @@ class MenuRepository {
   }
 
   async selectMenuItem( menuItemName: string, mealTime: string, username: string): Promise<string> {
+    const formattedmenuItemName = `%${menuItemName}%`;
     console.log("vb,.",menuItemName, mealTime, username );
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -166,8 +168,8 @@ class MenuRepository {
     }
 
     const [menuItem] = await connection.query<RowDataPacket[]>(
-        'SELECT id FROM menu_item WHERE name = ? AND mealType = ?',
-        [menuItemName, mealTime]
+        'SELECT id FROM menu_item WHERE name Like ? AND mealType = ?',
+        [formattedmenuItemName, mealTime]
     );
     console.log("menuItem:01", menuItem);
 
@@ -191,7 +193,7 @@ async getRecommendations(): Promise<MenuItem[]> {
       FROM menu_item m 
       LEFT JOIN Sentiment s ON m.id = s.menu_item_id 
       ORDER BY s.average_rating DESC 
-      LIMIT 5`;
+      LIMIT 10`;
       const [menuItems] = await connection.query<MenuItem[]>(query);
       return menuItems;
   } catch (error) {
@@ -240,20 +242,21 @@ async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
   if (existingRollout.length > 0) {
       return 'Menu items have already been rolled out for today. Please wait until tomorrow.';
   }
-
-  for (const itemName of itemNames) {
+  console.log("nitin_itemname", itemNames)
+  const formattedItems = itemNames.map(item => `%${item}%`);
+  for (const itemName of formattedItems) {
       const [item] = await connection.query<RowDataPacket[]>(
-          'SELECT id FROM menu_item WHERE name = ? AND mealType = ?',
+          'SELECT id FROM menu_item WHERE name Like ? AND mealType = ?',
           [itemName, mealTime]
       );
-
+      console.log("nitin_item:01", item);
       if (item.length === 0) {
           return `Menu item ${itemName} does not exist for ${mealTime}.`;
       }
 
       await connection.query(
           'INSERT INTO Rolledout_Item (menu_item_id, mealType, date) VALUES (?, ?, ?)',
-          [item[0].menu_item_id, mealTime, today]
+          [item[0].id, mealTime, today]
       );
   }
 
@@ -315,8 +318,15 @@ async saveSelectedMeal(data: { mealForBreakfast: string, mealForLunch: string, m
       [breakfastMeal[0].id, today, lunchMeal[0].id, today, dinnerMeal[0].id, today]
   );
 
+  notificationDB.createNotification(
+      'employee', 
+      `Chef will be making ${data.mealForBreakfast} for breakfast, ${data.mealForLunch} for lunch, and ${data.mealForDinner} for dinner today.`,
+      1
+  );
+
   return 'Meals for today saved successfully.';
 }
+
 
 }
 
