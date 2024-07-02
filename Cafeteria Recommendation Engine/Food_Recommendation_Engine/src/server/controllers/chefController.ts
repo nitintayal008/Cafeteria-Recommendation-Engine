@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation, getMenu, getTopRecommendations, rolloutFoodItem, checkResponses, selectTodayMeal, saveSelectedMeal } from '../services/chefService';
+import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation, getMenu, getTopRecommendations, rolloutFoodItem, checkResponses, selectTodayMeal, saveSelectedMeal, createAndViewDiscardList, saveFeedbackQuestion, deleteMenuItemByName, sendFeedbackQuestion } from '../services/chefService';
 import { getFoodItemForNextDay } from '../utils/recommendationEngine';
  
 export function handleChefActions(socket: Socket) {
@@ -46,4 +46,9 @@ export function handleChefActions(socket: Socket) {
   socket.on('checkResponses',checkResponses);
   socket.on('selectTodayMeal', selectTodayMeal);
   socket.on('saveSelectedMeal',saveSelectedMeal);
+  socket.on('createAndViewDiscardList', createAndViewDiscardList);
+  socket.on('saveFeedbackQuestion',saveFeedbackQuestion);
+  socket.on('removeFoodItem',deleteMenuItemByName);
+  socket.on('sendFeedbackQuestion',sendFeedbackQuestion);
 }
+

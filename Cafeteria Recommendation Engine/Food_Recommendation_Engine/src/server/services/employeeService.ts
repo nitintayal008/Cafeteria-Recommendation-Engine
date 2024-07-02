@@ -86,3 +86,34 @@ export async function voteFood(item: string, mealType: string, username: string,
     callback(false);
   }
 }
+
+export async function viewDiscardedItems(callback: Function) {
+  try {
+    const discardedItems = await menuRepository.viewDiscardedItems();
+    callback({ success: true, discardedItems });
+  } catch (err) {
+    console.error('Error viewing discarded items:', err);
+    callback({ success: false });
+  }
+}
+
+export async function saveSolution(question: string, answer: string, userid: number, callback: Function) {
+  try {
+    const exists = await menuRepository.saveSolution(question, answer, userid);
+    callback({ success: true,exists });
+  } catch (err) {
+    console.error('Error saving solution:', err);
+    callback(false);
+  }
+}
+
+export async function checkFeedbackResponses(userid: number, callback: Function) {
+  try {
+    const exists = await menuRepository.checkFeedbackResponses(userid);
+    console.log('exists', exists);
+    callback(exists);
+  } catch (err) {
+    console.error('Error checking responses:', err);
+    callback(false);
+  }
+}

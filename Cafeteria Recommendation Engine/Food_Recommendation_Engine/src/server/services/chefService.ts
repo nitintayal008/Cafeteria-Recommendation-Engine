@@ -172,3 +172,43 @@ export async function saveSelectedMeal(meals: { mealForBreakfast: string; mealFo
     callback({ success: false, message: 'Error saving selected meal.' });
   }
 }
+
+export async function createAndViewDiscardList(menuItems: any, callback: Function){
+  const badRatingFood = menuItems.find((item: { average_rating: string | null; }) => item.average_rating !== null && parseFloat(item.average_rating) <=  2.0);
+    console.log("nitin--dd",badRatingFood.name);
+    if(badRatingFood){
+      callback({success: true, DiscardedItem : badRatingFood.name})
+    }
+    else{
+      callback({success: false, DiscardedItem: "no discarded item right now"})
+    }
+}
+
+export async function deleteMenuItemByName(name: string, callback: Function) {
+  try {
+        const response = await menuRepository.deleteMenuItemByName(name, false);
+        if(response=="Deleted"){
+          callback({ success: true, message :"Sucessfully deleted from menu" });
+        }else{
+          callback({ success: true, message :"You allready deleted this from menu!! Now Come after 1 Month" });
+        }
+    } catch (err) {
+      console.error('Error updating menu item availability:', err);
+      callback({ success: false });
+    }
+}
+export async function saveFeedbackQuestion(data: any, callback: Function) {
+  // Save feedback question to the database or in-memory store
+  const message = `Feedback for ${data.discardedItem}: ${data.question} - ${data.response}`;
+  console.log(message);
+  notificationDB.createNotification('employee', message, 1);
+  callback({ success: true, message: "Feedback question saved." });
+}
+
+export async function sendFeedbackQuestion(data: any, callback: Function) {
+  // Send feedback question to the employee
+  const message = `${data.question}`;
+  console.log(message);
+  notificationDB.createNotification('employee', message, 100);
+  callback({ success: true, message: "Feedback question sent." });
+}

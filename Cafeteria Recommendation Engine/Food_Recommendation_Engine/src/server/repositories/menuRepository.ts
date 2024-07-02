@@ -360,5 +360,13 @@ async saveSolution( question: string, response: string, empId: number): Promise<
   await connection.query('INSERT INTO Feedback_Response ( question, response, employeeId) VALUES (?, ?, ?)', [ question, response, empId]);
   return "Solution saved successfully.";
 }
+
+async checkFeedbackResponses(empId: number): Promise<boolean> {
+  const [responses] = await connection.query<RowDataPacket[]>(
+      'SELECT * FROM Feedback_Response WHERE employeeId = ?',
+      [empId]
+  );
+  return responses.length > 0;
+}
 }
 export const menuRepository = new MenuRepository();

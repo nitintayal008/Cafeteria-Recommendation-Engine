@@ -1,38 +1,23 @@
-import { response } from "express";
 import { askQuestion, promptUser, rl } from "../server/utils/promptUtils";
 import { loggedInUser, socket } from "./client";
 
 export function handleChefChoice(choice: string) {
   switch (choice) {
     case "1":
-      rl.question("Enter menu type: ", (menuType) => {
-        rl.question("Enter the number of items to return: ", (size) => {
-          socket.emit(
-            "getFoodItemForNextDay",
-            { menuType, returnItemListSize: parseInt(size) },
-            (response: any) => {
-              console.log("Recommended Items:", response.recommendedItems);
-              rl.question(
-                "Enter item IDs to select for next day (comma-separated): ",
-                (selectedIds) => {
-                  const itemIds = selectedIds
-                    .split(",")
-                    .map((id) => parseInt(id.trim()));
-                  console.log("Selected item IDs: nitin", itemIds);
-                  socket.emit("selectNextDayMenu", itemIds, (res: any) => {
-                    console.log(res.message);
-                    promptUser("chef");
-                  });
-                }
-              );
-            }
-          );
+      socket.emit("getMenu", (response: any) => {
+        socket.emit('createAndViewDiscardList', response.menuItems, (response: any) => {
+          console.log("Discarded Item:", response.DiscardedItem);
+          if (response.success) {
+            handleDiscardOptions(response.DiscardedItem);
+          } else {
+            promptUser("chef");
+          }
         });
       });
       break;
     case "2":
       socket.emit("viewMonthlyFeedback", (response: any) => {
-        console.log(response);
+        console.table(response.feedbackReport);
         promptUser("chef");
       });
       break;
@@ -45,9 +30,7 @@ export function handleChefChoice(choice: string) {
               if (response.success) {
                 console.table(response.feedback);
               } else {
-                console.log(
-                  "Failed to fetch feedback or no feedback available."
-                );
+                console.log("Failed to fetch feedback or no feedback available.");
               }
               promptUser("chef");
             });
@@ -72,7 +55,7 @@ export function handleChefChoice(choice: string) {
       break;
     case "6":
       socket.emit("getTopRecommendations", (response: any) => {
-        console.log(response.items);
+        console.table(response.items);
         if (loggedInUser) {
           rolloutFoodItems();
         } else {
@@ -111,6 +94,62 @@ export function handleChefChoice(choice: string) {
   }
 }
 
+function handleDiscardOptions(discardedItem: string) {
+  console.log(`\nOptions for Discarded Item (${discardedItem}):`);
+  console.log("1) Remove the Food Item from Menu List");
+  console.log("2) Get Detailed Feedback");
+  rl.question("Enter your choice: ", (choice) => {
+    switch (choice) {
+      case "1":
+        removeFoodItem();
+        break;
+      case "2":
+        rollOutFeedbackQuestions(discardedItem);
+        break;
+      default:
+        console.log("Invalid choice, returning to chef menu.");
+        promptUser("chef");
+        break;
+    }
+  });
+}
+
+function removeFoodItem() {
+  rl.question(`Enter the name of the food item to remove : `, (itemName) => {
+    socket.emit("removeFoodItem", itemName, (response: any) => {
+      console.log(response.message);
+      promptUser("chef");
+    });
+  });
+}
+
+async function rollOutFeedbackQuestions(discardedItem: string) {
+  console.log(`Rolling out questions for detailed feedback on ${discardedItem}.`);
+  const questions = [
+    `What didn’t you like about ${discardedItem}?`,
+    `How would you like ${discardedItem} to taste?`,
+    `Share your mom’s recipe for ${discardedItem}.`
+  ];
+
+  for (let i = 0; i < questions.length; i++) {
+    await sendFeedbackQuestion(discardedItem, questions[i]);
+  }
+
+  console.log("All feedback questions have been rolled out.");
+  setTimeout(() => {
+    promptUser("chef");
+  }, 200);
+}
+
+function sendFeedbackQuestion(discardedItem: string, question: string) {
+  return new Promise((resolve) => {
+    socket.emit("sendFeedbackQuestion", { discardedItem, question }, (res: any) => {
+      // console.log(res.message);
+      resolve(res);
+    });
+  });
+}
+
 async function rolloutFoodItems() {
   const mealTimes = ["breakfast", "lunch", "dinner"];
   for (const mealTime of mealTimes) {
@@ -128,15 +167,9 @@ async function rolloutFoodItems() {
 
 async function selectMeal() {
   try {
-    const mealForBreakfast = await askQuestion(
-      "Enter Meal to be cooked for breakfast: "
-    );
-    const mealForLunch = await askQuestion(
-      "Enter Meal to be cooked for lunch: "
-    );
-    const mealForDinner = await askQuestion(
-      "Enter Meal to be cooked for dinner: "
-    );
+    const mealForBreakfast = await askQuestion("Enter Meal to be cooked for breakfast: ");
+    const mealForLunch = await askQuestion("Enter Meal to be cooked for lunch: ");
+    const mealForDinner = await askQuestion("Enter Meal to be cooked for dinner: ");
 
     const meals = { mealForBreakfast, mealForLunch, mealForDinner };
     socket.emit("saveSelectedMeal", meals, (response: any) => {

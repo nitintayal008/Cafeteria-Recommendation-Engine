@@ -69,6 +69,21 @@ export function handleEmployeeChoice(choice: string) {
       });
       break;
     case "5":
+      socket.emit("viewDiscardedItems", (response: any) => {
+        console.table(response.discardedItems);
+        const  alreadyFeddbacked = socket.emit("checkFeedbackResponses", loggedInUser?.employeeId, (response: any)=>{
+          return response;
+        }); 
+        if(!alreadyFeddbacked){
+          answerDiscardItem(response.discardedItems);
+        }
+        else{
+          console.log("You have already given feedback for the discarded items.");
+          promptUser("employee");
+        }
+      });
+      break;
+    case "6":
       rl.close();
       socket.close();
       console.log("Goodbye!");
@@ -99,3 +114,21 @@ async function voteTomorrowFood(username: string) {
   console.log('Your responses have been recorded successfully.\n');
   promptUser("employee");
 }
+
+async function answerDiscardItem(questions: string[]) {
+  for (const question of questions) {
+    let exists = "false";
+    const answer = await askQuestion(`${question}`);
+    await new Promise<void>((resolve) => {
+      if(loggedInUser)
+      socket.emit("saveSolution", question, answer, loggedInUser.employeeId, (result: string) => {
+        exists = result;
+        console.log(exists);
+        resolve();
+      });
+    });
+    console.log('Your response has been recorded successfully.\n');
+  }
+  promptUser("employee");
+}
+
