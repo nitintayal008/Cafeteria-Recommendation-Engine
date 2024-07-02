@@ -18,7 +18,7 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('5. Generate monthly feedback report');
     console.log('6. Exit');
   } else if (role === 'chef') {
-    console.log('1. Recommend Menu for Next Day');
+    console.log('1. View Discard Menu Item List');
     console.log('2. View Monthly Feedback Report');
     console.log('3. View Feedback');
     console.log('4. Check recommend food items');
@@ -31,8 +31,9 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('1. View Menu');
     console.log('2. Give Feedback');
     console.log('3. Select Food For Tomorrow');
-    console.log('4. View Notification');
-    console.log('5. Exit');
+    console.log('4. View Notification'  );
+    console.log("5. View Notification For Discarded Item And Give Feedback")
+    console.log('6. Exit');
   }
   
   rl.question('Enter your choice: ', (choice) => {
