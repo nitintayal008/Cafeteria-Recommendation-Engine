@@ -55,6 +55,27 @@ class MenuRepository {
       [availability, id]
     );
   }
+
+  async deleteMenuItemByName(name: string, availability: boolean):Promise<string> {
+
+    const [availabilityStatus] = await connection.query<RowDataPacket[]>(
+      "SELECT availability from  menu_item WHERE name = ?",
+      [name]
+    );
+    console.log("availabilityStatus", availabilityStatus[0]);
+    if(availabilityStatus[0].availability === 1){
+    await connection.query("SET SQL_SAFE_UPDATES = 0");
+    await connection.query(
+      "UPDATE menu_item SET availability = ? WHERE name = ?",
+      [availability, name]
+    );
+    await connection.query("SET SQL_SAFE_UPDATES = 1");
+    return "Deleted";
+  }else{
+    return "Already Deleted"
+  }
+}
+
   async viewMenu(): Promise<MenuItem[]> {
     const [rows] = await connection.query<MenuItem[]>(
       "SELECT id, name, price,mealType, availability FROM menu_item"
@@ -327,7 +348,17 @@ async saveSelectedMeal(data: { mealForBreakfast: string, mealForLunch: string, m
   return 'Meals for today saved successfully.';
 }
 
-
+async viewDiscardedItems(): Promise<string[]> {
+  const [discardedItems] = await connection.query<RowDataPacket[]>(
+      'SELECT message FROM notification WHERE user_id = 100'
+  );
+  console.log("discardedItems", discardedItems);
+  return discardedItems.map(item => item.message);
 }
 
+async saveSolution( question: string, response: string, empId: number): Promise<String> {
+  await connection.query('INSERT INTO Feedback_Response ( question, response, employeeId) VALUES (?, ?, ?)', [ question, response, empId]);
+  return "Solution saved successfully.";
+}
+}
 export const menuRepository = new MenuRepository();
