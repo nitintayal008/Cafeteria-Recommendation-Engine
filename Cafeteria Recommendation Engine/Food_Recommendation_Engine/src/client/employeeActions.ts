@@ -6,23 +6,15 @@ import { MenuItem } from "../server/utils/types";
 export function handleEmployeeChoice(choice: string) {
   switch (choice) {
     case "1":
-      // socket.emit("viewMenu", (response: any) => {
-      //   const formattedMenuItems = response.menuItems.map((item: MenuItem) => ({
-      //     id: item.id,
-      //     name: item.name,
-      //     price: item.price,
-      //     mealType: item.mealType,
-      //     availability: item.availability ? "available" : "not available",
-      //   }));
-      //   console.table(formattedMenuItems);
-      //   promptUser("employee");
-      // });
+      updateProfile();
+    break;
+    case "2":
       socket.emit("getMenu", (response: any) => {
         console.table(response.menuItems);
         promptUser("employee");
       });
       break;
-    case "2":
+    case "3":
       rl.question("Enter item ID to give feedback on: ", (itemId) => {
         const id = parseInt(itemId);
 
@@ -51,7 +43,7 @@ export function handleEmployeeChoice(choice: string) {
         });
       });
       break;
-    case "3":
+    case "4":
       socket.emit("getRolloutItems", (response: any) => {
         console.log(response);
         if (loggedInUser) {
@@ -62,13 +54,13 @@ export function handleEmployeeChoice(choice: string) {
         }
       });
       break;
-    case '4':
+    case '5':
       socket.emit("viewNotification", (response: any) => {
         console.table(response.notification);
         promptUser("employee");
       });
       break;
-    case "5":
+    case "6":
       socket.emit("viewDiscardedItems", (response: any) => {
         console.table(response.discardedItems);
         const  alreadyFeddbacked = socket.emit("checkFeedbackResponses", loggedInUser?.employeeId, (response: any)=>{
@@ -83,7 +75,7 @@ export function handleEmployeeChoice(choice: string) {
         }
       });
       break;
-    case "6":
+    case "7":
       rl.close();
       socket.close();
       console.log("Goodbye!");
@@ -130,5 +122,31 @@ async function answerDiscardItem(questions: string[]) {
     console.log('Your response has been recorded successfully.\n');
   }
   promptUser("employee");
+}
+
+async function updateProfile() {
+  try {
+    console.log("Please answer these questions to know your preferences:");
+    const dietaryPreference = await askQuestion("1) Please select one - Vegetarian, Non Vegetarian, Eggetarian: ");
+    const spiceLevel = await askQuestion("2) Please select your spice level - High, Medium, Low: ");
+    const cuisinePreference = await askQuestion("3) What do you prefer most - North Indian, South Indian, Other: ");
+    const sweetTooth = await askQuestion("4) Do you have a sweet tooth - Yes, No: ");
+    
+    const profileData = {
+      dietaryPreference: dietaryPreference.trim(),
+      spiceLevel: spiceLevel.trim(),
+      cuisinePreference: cuisinePreference.trim(),
+      sweetTooth: sweetTooth.trim().toLowerCase() === "yes"
+    };
+
+    socket.emit("updateProfile", profileData, loggedInUser?.employeeId, (response: any) => {
+      console.log(response.message);
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+  }
+  setTimeout(() => {
+    promptUser("employee");
+  }, 200);
 }
 

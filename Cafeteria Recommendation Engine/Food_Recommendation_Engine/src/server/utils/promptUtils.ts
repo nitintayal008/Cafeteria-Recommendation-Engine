@@ -28,12 +28,13 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log("8. Select today's meals");
     console.log('9. Exit');
   } else if (role === 'employee') {
-    console.log('1. View Menu');
-    console.log('2. Give Feedback');
-    console.log('3. Select Food For Tomorrow');
-    console.log('4. View Notification'  );
-    console.log("5. View Notification For Discarded Item And Give Feedback")
-    console.log('6. Exit');
+    console.log('1. Update Profile');
+    console.log('2. View Menu');
+    console.log('3. Give Feedback');
+    console.log('4. Select Food For Tomorrow');
+    console.log('5. View Notification'  );
+    console.log("6. View Notification For Discarded Item And Give Feedback")
+    console.log('7. Exit');
   }
   
   rl.question('Enter your choice: ', (choice) => {

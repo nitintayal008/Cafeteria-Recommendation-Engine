@@ -368,5 +368,26 @@ async checkFeedbackResponses(empId: number): Promise<boolean> {
   );
   return responses.length > 0;
 }
+
+async updateProfile(profileData: any, empId: number): Promise<string> {
+  const { dietaryPreference, spiceLevel, cuisinePreference, sweetTooth } = profileData;
+  const query = `
+    INSERT INTO employee_profile (
+      employee_id, dietary_preference, spice_level, cuisine_preference, sweet_tooth
+    ) VALUES (?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE 
+      dietary_preference = VALUES(dietary_preference), 
+      spice_level = VALUES(spice_level), 
+      cuisine_preference = VALUES(cuisine_preference), 
+      sweet_tooth = VALUES(sweet_tooth)
+  `;
+  try {
+    await connection.query(query, [empId, dietaryPreference, spiceLevel, cuisinePreference, sweetTooth]);
+    return "Profile updated successfully.";
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    throw new Error("Failed to update profile.");
+  }
+}
 }
 export const menuRepository = new MenuRepository();
