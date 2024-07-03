@@ -264,7 +264,7 @@ async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
       return 'Menu items have already been rolled out for today. Please wait until tomorrow.';
   }
   console.log("nitin_itemname", itemNames)
-  const formattedItems = itemNames.map(item => `%${item}%`);
+  const formattedItems = itemNames.map(item => `%${item.trim()}%`);
   for (const itemName of formattedItems) {
       const [item] = await connection.query<RowDataPacket[]>(
           'SELECT id FROM menu_item WHERE name Like ? AND mealType = ?',
