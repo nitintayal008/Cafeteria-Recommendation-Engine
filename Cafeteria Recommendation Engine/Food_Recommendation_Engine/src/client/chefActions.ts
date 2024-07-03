@@ -74,7 +74,6 @@ export function handleChefChoice(choice: string) {
       socket.emit("selectTodayMeal", (response: any) => {
         console.log(response);
         if (loggedInUser) {
-          console.log("nitin_lats");
           selectMeal();
         } else {
           console.log("User not logged in");
