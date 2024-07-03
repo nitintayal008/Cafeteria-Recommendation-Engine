@@ -125,6 +125,6 @@ export async function updateProfile(profileData:any,employeeId:number,  callback
     callback({ success: true, message : profile});
   } catch (err) {
     console.error('Error updating profile:', err);
-    callback({ success: false });
+    callback({ success: false, message : "Failed to update profile!! You Have entered wrong data. Please try again."});
   }
 }

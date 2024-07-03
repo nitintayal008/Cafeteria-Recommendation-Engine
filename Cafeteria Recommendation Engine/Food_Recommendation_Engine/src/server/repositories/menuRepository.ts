@@ -385,7 +385,6 @@ async updateProfile(profileData: any, empId: number): Promise<string> {
     await connection.query(query, [empId, dietaryPreference, spiceLevel, cuisinePreference, sweetTooth]);
     return "Profile updated successfully.";
   } catch (error) {
-    console.error("Error updating profile:", error);
     throw new Error("Failed to update profile.");
   }
 }
