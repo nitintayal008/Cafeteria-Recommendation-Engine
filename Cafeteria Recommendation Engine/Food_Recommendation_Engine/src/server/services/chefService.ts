@@ -144,23 +144,25 @@ export async function checkResponses(callback: Function) {
     let messages: string[] = [];
         for (const mealTime of mealTimes) {
             const message = await menuRepository.checkResponses(mealTime);
-            messages.push(message);
+            messages.push(...message);
         }
         callback({ success: true, messages });  
 }
 
 export async function selectTodayMeal(callback: Function) {
   const today = new Date().toISOString().slice(0, 10);
-  let messages: string[] = [];
-        const mealTimes = ['breakfast', 'lunch', 'dinner'];
-        for (const mealTime of mealTimes) {
-            const responses = await menuRepository.selectFoodToPrepare(today, mealTime);
-            responses.forEach((response: any) => {
-                const message = `Item: ${response.name}, Votes: ${response.vote_count}`;
-                messages.push(message);
-            });
-        }
-        callback({ success: true, messages });
+  let meals: any = {};
+
+  const mealTimes = ['breakfast', 'lunch', 'dinner'];
+  for (const mealTime of mealTimes) {
+    const responses = await menuRepository.selectFoodToPrepare(today, mealTime);
+    meals[mealTime] = responses.map((response: any) => ({
+      name: response.name,
+      vote_count: response.vote_count
+    }));
+  }
+
+  callback({ success: true, meals });
 }
 
 export async function saveSelectedMeal(meals: { mealForBreakfast: string; mealForLunch: string; mealForDinner: string; }, callback: Function) {

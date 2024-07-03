@@ -59,3 +59,9 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
 export function askQuestion(query: string): Promise<string> {
   return new Promise((resolve) => rl.question(query, resolve));
 }
+
+export function askQuestionAsync(question: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => resolve(answer));
+  });
+}

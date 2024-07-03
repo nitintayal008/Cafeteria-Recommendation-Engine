@@ -1,106 +1,23 @@
-import { promptUser, rl } from "../server/utils/promptUtils";
+import { askQuestion, promptUser, rl } from "../server/utils/promptUtils";
 import { MenuItem } from "../server/utils/types";
 import { socket } from "./client";
 
-export function handleAdminChoice(choice: string) {
+export async function handleAdminChoice(choice: string) {
   switch (choice) {
     case "1":
-      rl.question("Enter item name: ", (name) => {
-        rl.question("Enter item price: ", (price) => {
-            rl.question("Enter meal type: ", (mealType) => {
-          rl.question(
-            "Is the item available (true/false): ",
-            (availability) => {
-              socket.emit(
-                "addMenuItem",
-                {
-                  name,
-                  price: parseFloat(price),
-                  mealType:mealType,
-                  availability: availability === "true",
-                },
-                (response: any) => {
-                  console.log(response);
-                  promptUser("admin");
-                }
-              );
-            }
-          );
-        });
-    });
-      });
+      await addMenuItem();
       break;
-      case "2":
-  rl.question("Enter item ID to update: ", (id) => {
-    const itemId = parseInt(id);
-    socket.emit("checkFoodItemExistence", itemId, (exists: boolean) => {
-      if (exists) {
-        rl.question("Enter new item name: ", (name) => {
-          rl.question("Enter new item price: ", (price) => {
-            rl.question("Enter meal type: ", (mealType) => {
-            rl.question(
-              "Is the item available (true/false): ",
-              (availability) => {
-                const isAvailable = availability === "true";
-                socket.emit(
-                  "updateMenuItem",
-                  {
-                    id: itemId,
-                    name,
-                    price: parseFloat(price),
-                    mealType:mealType,
-                    availability: isAvailable,
-                  },
-                  (response: any) => {
-                    console.log(response);
-                    promptUser("admin");
-                  }
-                );
-              }
-            );
-          });
-        });
-        });
-      } else {
-        console.log(`Menu item with ID ${itemId} does not exist.`);
-        promptUser("admin");
-      }
-    });
-  });
-  break;
+    case "2":
+      await updateMenuItem();
+      break;
     case "3":
-      rl.question("Enter item ID to delete: ", (id) => {
-        socket.emit("deleteMenuItem", parseInt(id), (response: any) => {
-          console.log(response);
-          promptUser("admin");
-        });
-      });
+      await deleteMenuItem();
       break;
     case "4":
-      socket.emit("viewMenu", (response: any) => {
-        if (response.success) {
-          const formattedMenuItems = response.menuItems.map(
-            (item: MenuItem) => ({
-              id: item.id,
-              name: item.name,
-              price: item.price,
-              mealType:item.mealType,
-              availability: item.availability ? "available" : "not available",
-            })
-          );
-
-          console.table(formattedMenuItems);
-        } else {
-          console.log("Failed to retrieve menu items.");
-        }
-        promptUser("admin");
-      });
+      viewMenu();
       break;
     case "5":
-      socket.emit("viewMonthlyFeedback", (response: any) => {
-        console.log(response.feedbackReport);
-        promptUser("admin");
-      });
+      viewMonthlyFeedback();
       break;
     case "6":
       rl.close();
@@ -112,4 +29,102 @@ export function handleAdminChoice(choice: string) {
       promptUser("admin");
       break;
   }
+}
+
+async function addMenuItem() {
+  try {
+    const name = await askQuestion("Enter item name: ");
+    const price = await askQuestion("Enter item price: ");
+    const mealType = await askQuestion("Enter meal type: ");
+    const availability = await askQuestion("Is the item available (true/false): ");
+    
+    const menuItem = {
+      name,
+      price: parseFloat(price),
+      mealType,
+      availability: availability === "true",
+    };
+    
+    socket.emit("addMenuItem", menuItem, (response: any) => {
+      console.log(response);
+      promptUser("admin");
+    });
+  } catch (error) {
+    console.error("Error adding menu item:", error);
+  }
+}
+
+async function updateMenuItem() {
+  try {
+    const id = await askQuestion("Enter item ID to update: ");
+    const itemId = parseInt(id);
+
+    socket.emit("checkFoodItemExistence", itemId, async (exists: boolean) => {
+      if (exists) {
+        const name = await askQuestion("Enter new item name: ");
+        const price = await askQuestion("Enter new item price: ");
+        const mealType = await askQuestion("Enter meal type: ");
+        const availability = await askQuestion("Is the item available (true/false): ");
+
+        const updatedItem = {
+          id: itemId,
+          name,
+          price: parseFloat(price),
+          mealType,
+          availability: availability === "true",
+        };
+
+        socket.emit("updateMenuItem", updatedItem, (response: any) => {
+          console.log(response);
+          promptUser("admin");
+        });
+      } else {
+        console.log(`Menu item with ID ${itemId} does not exist.`);
+        promptUser("admin");
+      }
+    });
+  } catch (error) {
+    console.error("Error updating menu item:", error);
+  }
+}
+
+async function deleteMenuItem() {
+  try {
+    const id = await askQuestion("Enter item ID to delete: ");
+    const itemId = parseInt(id);
+
+    socket.emit("deleteMenuItem", itemId, (response: any) => {
+      console.log(response);
+      promptUser("admin");
+    });
+  } catch (error) {
+    console.error("Error deleting menu item:", error);
+  }
+}
+
+function viewMenu() {
+  socket.emit("viewMenu", (response: any) => {
+    if (response.success) {
+      const formattedMenuItems = response.menuItems.map(
+        (item: MenuItem) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          mealType: item.mealType,
+          availability: item.availability ? "available" : "not available",
+        })
+      );
+      console.table(formattedMenuItems);
+    } else {
+      console.log("Failed to retrieve menu items.");
+    }
+    promptUser("admin");
+  });
+}
+
+function viewMonthlyFeedback() {
+  socket.emit("viewMonthlyFeedback", (response: any) => {
+    console.table(response.feedbackReport);
+    promptUser("admin");
+  });
 }

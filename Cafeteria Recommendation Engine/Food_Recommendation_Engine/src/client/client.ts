@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { askQuestion, promptUser, rl } from '../server/utils/promptUtils';
+import { askQuestion, promptUser } from '../server/utils/promptUtils';
 
 export const socket = io('http://localhost:3000');
 export let loggedInUser: { employeeId: string, name: string } | null = null;

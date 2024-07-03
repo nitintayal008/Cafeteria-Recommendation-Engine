@@ -284,24 +284,37 @@ async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
   return `Menu items for ${mealTime} rolled out successfully.`;
 }
 
-async checkResponses(mealTime: string): Promise<string> {
+// In your server file (e.g., employeeService.ts or similar)
+async checkResponses(mealTime: string): Promise<string[]> {
   const today = new Date().toISOString().slice(0, 10);
   console.log("today:01", today, mealTime);
-  const [responses] = await connection.query<RowDataPacket[]>(
-      `SELECT menu_item.name, COUNT(Employee_Selection.menu_item_id) as vote_count
-      FROM Employee_Selection
-      JOIN menu_item ON Employee_Selection.menu_item_id = menu_item.id
-      WHERE Employee_Selection.date = ? AND Employee_Selection.mealType = ?
-      GROUP BY Employee_Selection.menu_item_id`,
-      [today, mealTime]
-  );
-  console.log("nitni_responses",responses);
-  let responseString = `--- Responses for ${mealTime} ---\n`;
-  responses.forEach((response: any) => {
-      responseString += `Item: ${response.name}, Votes: ${response.vote_count}\n`;
-  });
 
-  return responseString;
+  const [responses] = await connection.query<RowDataPacket[]>(
+    `SELECT menu_item.name, COUNT(Employee_Selection.menu_item_id) as vote_count
+     FROM Employee_Selection
+     JOIN menu_item ON Employee_Selection.menu_item_id = menu_item.id
+     WHERE Employee_Selection.date = ? AND Employee_Selection.mealType = ?
+     GROUP BY Employee_Selection.menu_item_id`,
+    [today, mealTime]
+  );
+
+  let responseMessages: string[] = [];
+  
+  responseMessages.push(`\x1b[32m--- Responses for ${mealTime} ---\x1b[0m`);
+
+  if (responses.length > 0) {
+    responses.forEach((response: any) => {
+      const itemMessage = `\nItem: \x1b[36m${response.name}\x1b[0m\nVotes: \x1b[33m${response.vote_count}\x1b[0m\n`;
+      responseMessages.push(itemMessage);
+    });
+  } else {
+    const noVotesMessage = `\nNo votes recorded for ${mealTime} today.\n`;
+    responseMessages.push(noVotesMessage);
+  }
+
+  responseMessages.push(`\n\x1b[35m-----------------------------\x1b[0m\n`);
+
+  return responseMessages;
 }
 
 async selectFoodToPrepare(today: string, mealTime: string): Promise<RowDataPacket[]> {

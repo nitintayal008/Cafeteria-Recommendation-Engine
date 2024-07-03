@@ -1,96 +1,59 @@
-import { askQuestion, promptUser, rl } from "../server/utils/promptUtils";
+import { askQuestionAsync, promptUser, rl } from "../server/utils/promptUtils";
 import { loggedInUser, socket } from "./client";
-
-export function handleChefChoice(choice: string) {
-  switch (choice) {
-    case "1":
-      socket.emit("getMenu", (response: any) => {
-        socket.emit('createAndViewDiscardList', response.menuItems, (response: any) => {
-          console.log("Discarded Item:", response.DiscardedItem);
-          if (response.success) {
-            handleDiscardOptions(response.DiscardedItem);
-          } else {
-            promptUser("chef");
-          }
-        });
-      });
-      break;
-    case "2":
-      socket.emit("viewMonthlyFeedback", (response: any) => {
-        console.table(response.feedbackReport);
+ 
+export async function handleChefChoice(choice: string) {
+  try {
+    switch (choice) {
+      case "1":
+        await handleDiscardList();
+        break;
+      case "2":
+        await viewMonthlyFeedback();
+        break;
+      case "3":
+        await viewFeedbackForItem();
+        break;
+      case "4":
+        await viewRecommendations();
+        break;
+      case "5":
+        await viewMenu();
+        break;
+      case "6":
+        await handleTopRecommendations();
+        break;
+      case "7":
+        await checkResponses();
+        break;
+      case "8":
+        await selectTodayMeal();
+        break;
+      case "9":
+        rl.close();
+        socket.close();
+        console.log("Goodbye!");
+        break;
+      default:
+        console.log("Invalid choice, please try again.");
         promptUser("chef");
-      });
-      break;
-    case "3":
-      rl.question("Enter item ID to view feedback: ", (id) => {
-        const itemId = parseInt(id);
-        socket.emit("checkFoodItemExistence", itemId, (exists: boolean) => {
-          if (exists) {
-            socket.emit("viewFeedback", itemId, (response: any) => {
-              if (response.success) {
-                console.table(response.feedback);
-              } else {
-                console.log("Failed to fetch feedback or no feedback available.");
-              }
-              promptUser("chef");
-            });
-          } else {
-            console.log(`Menu item with ID ${itemId} does not exist.`);
-            promptUser("chef");
-          }
-        });
-      });
-      break;
-    case "4":
-      socket.emit("getRecommendation", (response: any) => {
-        console.table(response.menuItems);
-        promptUser("chef");
-      });
-      break;
-    case "5":
-      socket.emit("getMenu", (response: any) => {
-        console.table(response.menuItems);
-        promptUser("chef");
-      });
-      break;
-    case "6":
-      socket.emit("getTopRecommendations", (response: any) => {
-        console.table(response.items);
-        if (loggedInUser) {
-          rolloutFoodItems();
-        } else {
-          console.log("User not logged in");
-          promptUser("chef");
-        }
-      });
-      break;
-    case "7":
-      socket.emit("checkResponses", (response: any) => {
-        console.log(response);
-        promptUser("chef");
-      });
-      break;
-    case "8":
-      socket.emit("selectTodayMeal", (response: any) => {
-        console.log(response);
-        if (loggedInUser) {
-          selectMeal();
-        } else {
-          console.log("User not logged in");
-          promptUser("chef");
-        }
-      });
-      break;
-    case "9":
-      rl.close();
-      socket.close();
-      console.log("Goodbye!");
-      break;
-    default:
-      console.log("Invalid choice, please try again.");
-      promptUser("chef");
-      break;
+        break;
+    }
+  } catch (error) {
+    console.error("Error handling chef choice:", error);
   }
+}
+
+async function handleDiscardList() {
+  socket.emit("getMenu", (response: any) => {
+    socket.emit("createAndViewDiscardList", response.menuItems, (response: any) => {
+      console.log("Discarded Item:", response.DiscardedItem);
+      if (response.success) {
+        handleDiscardOptions(response.DiscardedItem);
+      } else {
+        promptUser("chef");
+      }
+    });
+  });
 }
 
 function handleDiscardOptions(discardedItem: string) {
@@ -114,7 +77,7 @@ function handleDiscardOptions(discardedItem: string) {
 }
 
 function removeFoodItem() {
-  rl.question(`Enter the name of the food item to remove : `, (itemName) => {
+  rl.question("Enter the name of the food item to remove: ", (itemName) => {
     socket.emit("removeFoodItem", itemName, (response: any) => {
       console.log(response.message);
       promptUser("chef");
@@ -130,8 +93,8 @@ async function rollOutFeedbackQuestions(discardedItem: string) {
     `Share your mom’s recipe for ${discardedItem}.`
   ];
 
-  for (let i = 0; i < questions.length; i++) {
-    await sendFeedbackQuestion(discardedItem, questions[i]);
+  for (const question of questions) {
+    await sendFeedbackQuestion(discardedItem, question);
   }
 
   console.log("All feedback questions have been rolled out.");
@@ -143,10 +106,130 @@ async function rollOutFeedbackQuestions(discardedItem: string) {
 function sendFeedbackQuestion(discardedItem: string, question: string) {
   return new Promise((resolve) => {
     socket.emit("sendFeedbackQuestion", { discardedItem, question }, (res: any) => {
-      // console.log(res.message);
       resolve(res);
     });
   });
+}
+
+function viewMonthlyFeedback() {
+  socket.emit("viewMonthlyFeedback", (response: any) => {
+    console.table(response.feedbackReport);
+    promptUser("chef");
+  });
+}
+
+async function viewFeedbackForItem() {
+  try {
+    const id = await askQuestionAsync("Enter item ID to view feedback: ");
+    const itemId = parseInt(id);
+    socket.emit("checkFoodItemExistence", itemId, (exists: boolean) => {
+      if (exists) {
+        socket.emit("viewFeedback", itemId, (response: any) => {
+          if (response.success) {
+            console.table(response.feedback);
+          } else {
+            console.log("Failed to fetch feedback or no feedback available.");
+          }
+          promptUser("chef");
+        });
+      } else {
+        console.log(`Menu item with ID ${itemId} does not exist.`);
+        promptUser("chef");
+      }
+    });
+  } catch (error) {
+    console.error("Error viewing feedback for item:", error);
+  }
+}
+
+function viewRecommendations() {
+  socket.emit("getRecommendation", (response: any) => {
+    console.table(response.menuItems);
+    promptUser("chef");
+  });
+}
+
+function viewMenu() {
+  socket.emit("getMenu", (response: any) => {
+    console.table(response.menuItems);
+    promptUser("chef");
+  });
+}
+
+async function handleTopRecommendations() {
+  socket.emit("getTopRecommendations", (response: any) => {
+    console.table(response.items);
+    if (loggedInUser) {
+      rolloutFoodItems();
+    } else {
+      console.log("User not logged in");
+      promptUser("chef");
+    }
+  });
+}
+
+function checkResponses() {
+  socket.emit("checkResponses", (response: any) => {
+    if (response.success) {
+      response.messages.forEach((message: any) => {
+        console.log(message);
+      });
+    } else {
+      console.log("Failed to fetch responses.");
+    }
+    promptUser("chef");
+  });
+}
+
+async function selectTodayMeal() {
+  try {
+    socket.emit("selectTodayMeal", (response: any) => {
+      if (response.success) {
+        const { meals } = response;
+        
+        console.log("\x1b[32m--- Today's Meals ---\x1b[0m");
+
+        if (meals.breakfast && meals.breakfast.length > 0) {
+          console.log("\x1b[36m--- Breakfast ---\x1b[0m");
+          meals.breakfast.forEach((meal: any) => {
+            console.log(`Item: ${meal.name}, Votes: ${meal.vote_count}`);
+          });
+        } else {
+          console.log("No breakfast items selected.");
+        }
+
+        if (meals.lunch && meals.lunch.length > 0) {
+          console.log("\x1b[36m--- Lunch ---\x1b[0m");
+          meals.lunch.forEach((meal: any) => {
+            console.log(`Item: ${meal.name}, Votes: ${meal.vote_count}`);
+          });
+        } else {
+          console.log("No lunch items selected.");
+        }
+
+        if (meals.dinner && meals.dinner.length > 0) {
+          console.log("\x1b[36m--- Dinner ---\x1b[0m");
+          meals.dinner.forEach((meal: any) => {
+            console.log(`Item: ${meal.name}, Votes: ${meal.vote_count}`);
+          });
+        } else {
+          console.log("No dinner items selected.");
+        }
+        
+        if (loggedInUser) {
+          selectMeal(); 
+        } else {
+          console.log("User not logged in");
+          promptUser("chef");
+        }
+      } else {
+        console.log("Failed to fetch today's meals.");
+        promptUser("chef");
+      }
+    });
+  } catch (error) {
+    console.error("Error selecting today's meal:", error);
+  }
 }
 
 async function rolloutFoodItems() {
@@ -155,7 +238,7 @@ async function rolloutFoodItems() {
     console.log(`Please enter the names of three items for ${mealTime}:`);
     const items: Array<string> = [];
     for (let i = 0; i < 3; i++) {
-      const item = await askQuestion(`Enter item ${i + 1}: `);
+      const item = await askQuestionAsync(`Enter item ${i + 1}: `);
       items.push(item);
     }
     socket.emit("rolloutFoodItem", mealTime, items);
@@ -166,9 +249,9 @@ async function rolloutFoodItems() {
 
 async function selectMeal() {
   try {
-    const mealForBreakfast = await askQuestion("Enter Meal to be cooked for breakfast: ");
-    const mealForLunch = await askQuestion("Enter Meal to be cooked for lunch: ");
-    const mealForDinner = await askQuestion("Enter Meal to be cooked for dinner: ");
+    const mealForBreakfast = await askQuestionAsync("Enter Meal to be cooked for breakfast: ");
+    const mealForLunch = await askQuestionAsync("Enter Meal to be cooked for lunch: ");
+    const mealForDinner = await askQuestionAsync("Enter Meal to be cooked for dinner: ");
 
     const meals = { mealForBreakfast, mealForLunch, mealForDinner };
     socket.emit("saveSelectedMeal", meals, (response: any) => {
