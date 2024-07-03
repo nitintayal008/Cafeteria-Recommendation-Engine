@@ -33,21 +33,15 @@ export function handleAdminChoice(choice: string) {
       case "2":
   rl.question("Enter item ID to update: ", (id) => {
     const itemId = parseInt(id);
-
-    // Emit checkFoodItemExistence event to check if the item exists
     socket.emit("checkFoodItemExistence", itemId, (exists: boolean) => {
       if (exists) {
-        // Item exists, prompt for new item details
         rl.question("Enter new item name: ", (name) => {
           rl.question("Enter new item price: ", (price) => {
             rl.question("Enter meal type: ", (mealType) => {
             rl.question(
               "Is the item available (true/false): ",
               (availability) => {
-                // Convert availability string to boolean
                 const isAvailable = availability === "true";
-
-                // Once all information is gathered, emit updateMenuItem event
                 socket.emit(
                   "updateMenuItem",
                   {
@@ -68,7 +62,6 @@ export function handleAdminChoice(choice: string) {
         });
         });
       } else {
-        // Item does not exist, notify and prompt for valid ID
         console.log(`Menu item with ID ${itemId} does not exist.`);
         promptUser("admin");
       }
