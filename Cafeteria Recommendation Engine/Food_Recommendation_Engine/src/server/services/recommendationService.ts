@@ -32,10 +32,8 @@ export async function calculateSentiments() {
     }
 
     console.log('Sentiments Updated....');
-    // callback({ success: true });
   } catch (error) {
     console.error('Error updating sentiments:', error);
-    // callback({ success: false });
   }
 }
 

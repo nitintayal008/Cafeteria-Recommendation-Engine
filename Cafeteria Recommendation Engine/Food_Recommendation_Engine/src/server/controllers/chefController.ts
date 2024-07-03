@@ -17,7 +17,6 @@ export function handleChefActions(socket: Socket) {
     callback(result);
   });
 
-  // Handle employee selections
   socket.on('employeeSelectNextDayMenu', async (selectedItems: number[], callback: Function) => {
     try {
       await storeEmployeeChoice(socket.id, selectedItems);
@@ -28,7 +27,6 @@ export function handleChefActions(socket: Socket) {
     }
   });
 
-  // Finalize the menu based on all employee choices (this can be called at a scheduled time)
   socket.on('finalizeMenu', async (callback: Function) => {
     try {
       const finalMenu = await finalizeMenu();
@@ -51,4 +49,3 @@ export function handleChefActions(socket: Socket) {
   socket.on('removeFoodItem',deleteMenuItemByName);
   socket.on('sendFeedbackQuestion',sendFeedbackQuestion);
 }
-

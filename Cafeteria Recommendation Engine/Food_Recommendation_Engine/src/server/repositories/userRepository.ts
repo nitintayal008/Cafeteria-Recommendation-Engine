@@ -1,7 +1,6 @@
 import connection from "../utils/database";
 import { RowDataPacket } from "mysql2";
 
-// Define the User type based on the structure of your `user` table
 interface User extends RowDataPacket {
   id: number;
   employeeId: string;

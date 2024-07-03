@@ -9,7 +9,7 @@ export function handleEmployeeActions(socket: Socket) {
   socket.on('checkFoodItemExistence', (itemId, callback) => {
     checkFoodItemExistence(itemId)
       .then((exists: boolean) => callback(exists))
-      .catch(() => callback(false)); // Handle errors, return false for simplicity
+      .catch(() => callback(false));
   });
   socket.on('nextDayMenu', nextDayMenu);
   socket.on('saveResponseForNextDay', saveResponseForNextDay);

@@ -77,7 +77,6 @@ export async function viewNotification(callback: Function) {
 }
 
 export async function voteFood(item: string, mealType: string, username: string, callback: Function) {
-  console.log("i am here");
   try {
     const exists = await menuRepository.selectMenuItem(item, mealType, username);
     callback(exists);
