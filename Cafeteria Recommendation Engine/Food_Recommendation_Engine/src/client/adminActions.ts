@@ -37,7 +37,11 @@ async function addMenuItem() {
     const price = await askQuestion("Enter item price: ");
     const mealType = await askQuestion("Enter meal type: ");
     const availability = await askQuestion("Is the item available (true/false): ");
-    
+    const foodType = await askQuestion("1) Select one - Vegetarian, Non Vegetarian, Eggetarian: ");
+    const spiceLevel = await askQuestion("2) Select your spice level - High, Medium, Low: ");
+    const cuisine = await askQuestion("3) Select your cuisine preference - North Indian, South Indian, Other: ");
+    const sweetTooth = await askQuestion("4) Do you have a sweet tooth? (Yes/No): ");
+
     const menuItem = {
       name,
       price: parseFloat(price),
@@ -45,8 +49,20 @@ async function addMenuItem() {
       availability: availability === "true",
     };
     
-    socket.emit("addMenuItem", menuItem, (response: any) => {
+    const profileData = {
+      foodType: foodType.trim(),
+      spiceLevel: spiceLevel.trim(),
+      cuisine: cuisine.trim(),
+      sweetTooth: sweetTooth.trim().toLowerCase() === "yes"
+    };
+
+    socket.emit("addMenuItem", menuItem, profileData, (response: any) => {
       console.log(response);
+      if(response.success == true){
+        console.log("Item added sucessfully");
+      }else{
+        console.log("Error adding item , try adding again");
+      }
       promptUser("admin");
     });
   } catch (error) {

@@ -11,7 +11,7 @@ class MenuRepository {
     );
     return rows.length > 0 ? rows[0] : null;
   }
-  async addMenuItem({ name, price, mealType, availability }: MenuItemPayload) {
+  async addMenuItem({ name, price, mealType, availability }: MenuItemPayload, profileData:any) {
     console.log(name, price, mealType, availability);
     const existingItem = await this.findMenuItemByName(name);
     if (existingItem) {
@@ -21,6 +21,13 @@ class MenuRepository {
       "INSERT INTO menu_item (name, price,mealType, availability) VALUES (?, ?, ?,?)",
       [name, price, mealType, availability]
     );
+    const [menu_item_id] = await connection.query<RowDataPacket[]>(
+      'SELECT id FROM menu_item WHERE name = ?',
+      [name]
+  );
+  if (menu_item_id.length > 0) {
+    await connection.query('INSERT INTO Menu_Item_Attribute (menu_item_id, food_type, spice_level, cuisine, sweet_tooth) VALUES (?, ?, ?, ?, ?)', [menu_item_id[0].id, profileData.foodType, profileData.spiceLevel, profileData.cuisine, profileData.sweetTooth])
+}
     return (results as any).insertId;
   }
 
@@ -30,6 +37,7 @@ class MenuRepository {
     price,
     mealType,
     availability,
+    profileData,
   }: MenuItemPayload) {
     const existingItem = await this.findMenuItemByName(name);
     if (existingItem) {
@@ -146,16 +154,28 @@ class MenuRepository {
     }
   }
 
-  async getRolledOutItems(mealType: string) {
+  async getRolledOutItems(mealType: string, user: any) {
     try {
       const today = new Date().toISOString().slice(0, 10);
+      const [userAttributes] = await connection.query<RowDataPacket[]>('SELECT food_preference, spice_level, cuisine, sweet_tooth FROM employee_profile WHERE employee_id = ?', [user.employeeId]);
+
       console.log("todcay:01", today);
       const [rows] = await connection.query<RowDataPacket[]>(
+        // `SELECT Menu_Item.name
+        //     FROM Rolledout_Item
+        //     JOIN Menu_Item ON Rolledout_Item.menu_item_id = Menu_Item.id
+        //     WHERE Rolledout_Item.date = ? AND Rolledout_Item.mealType = ?`,
+        // [today, mealType]
         `SELECT Menu_Item.name
-            FROM Rolledout_Item
-            JOIN Menu_Item ON Rolledout_Item.menu_item_id = Menu_Item.id
-            WHERE Rolledout_Item.date = ? AND Rolledout_Item.mealType = ?`,
-        [today, mealType]
+            FROM Rolledout_Item ri
+            INNER JOIN Menu_Item m ON ri.menu_item_id = m.id
+            INNER JOIN Menu_Item_Attribute mia ON m.id = mia.menu_item_id
+            WHERE ri.date = ? AND ri.meal_time = ?
+            ORDER BY (CASE WHEN mia.food_type = ? THEN 0 ELSE 1 END),
+            (CASE WHEN mia.spice_level = ? THEN 0 ELSE 1 END),
+            (CASE WHEN mia.cuisine = ? THEN 0 ELSE 1 END),
+            (CASE WHEN mia.sweet_tooth = ? THEN 0 ELSE 1 END) DESC`,
+            [today, mealType, userAttributes[0].food_preference, userAttributes[0].spice_level, userAttributes[0].cuisine, userAttributes[0].sweet_tooth]
       );
       console.log("rows:01", rows);
       return rows.map((row) => row.name);
@@ -383,19 +403,19 @@ async checkFeedbackResponses(empId: number): Promise<boolean> {
 }
 
 async updateProfile(profileData: any, empId: number): Promise<string> {
-  const { dietaryPreference, spiceLevel, cuisinePreference, sweetTooth } = profileData;
+  const { foodType, spiceLevel, cuisine, sweetTooth } = profileData;
   const query = `
     INSERT INTO employee_profile (
-      employee_id, dietary_preference, spice_level, cuisine_preference, sweet_tooth
+      employee_id, food_type, spice_level, cuisine, sweet_tooth
     ) VALUES (?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE 
-      dietary_preference = VALUES(dietary_preference), 
+      food_type = VALUES(food_type), 
       spice_level = VALUES(spice_level), 
-      cuisine_preference = VALUES(cuisine_preference), 
+      cuisine = VALUES(cuisine), 
       sweet_tooth = VALUES(sweet_tooth)
   `;
   try {
-    await connection.query(query, [empId, dietaryPreference, spiceLevel, cuisinePreference, sweetTooth]);
+    await connection.query(query, [empId, foodType, spiceLevel, cuisine, sweetTooth]);
     return "Profile updated successfully.";
   } catch (error) {
     throw new Error("Failed to update profile.");

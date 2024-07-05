@@ -36,15 +36,15 @@ export function handleEmployeeChoice(choice: string) {
 async function updateProfile() {
   try {
     console.log("Please answer these questions to update your preferences:");
-    const dietaryPreference = await askQuestion("1) Select one - Vegetarian, Non Vegetarian, Eggetarian: ");
+    const foodType = await askQuestion("1) Select one - Vegetarian, Non Vegetarian, Eggetarian: ");
     const spiceLevel = await askQuestion("2) Select your spice level - High, Medium, Low: ");
-    const cuisinePreference = await askQuestion("3) Select your cuisine preference - North Indian, South Indian, Other: ");
+    const cuisine = await askQuestion("3) Select your cuisine preference - North Indian, South Indian, Other: ");
     const sweetTooth = await askQuestion("4) Do you have a sweet tooth? (Yes/No): ");
     
     const profileData = {
-      dietaryPreference: dietaryPreference.trim(),
+      foodType: foodType.trim(),
       spiceLevel: spiceLevel.trim(),
-      cuisinePreference: cuisinePreference.trim(),
+      cuisine: cuisine.trim(),
       sweetTooth: sweetTooth.trim().toLowerCase() === "yes"
     };
 
@@ -97,7 +97,7 @@ function giveFeedback() {
 }
 
 function getRolloutItems() {
-  socket.emit("getRolloutItems", (response: any) => {
+  socket.emit("getRolloutItems", loggedInUser, (response: any) => {
     console.log(response);
     if (loggedInUser) {
       voteTomorrowFood(loggedInUser.name);

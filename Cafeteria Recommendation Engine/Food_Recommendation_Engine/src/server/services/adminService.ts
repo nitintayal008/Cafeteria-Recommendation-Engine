@@ -1,9 +1,9 @@
 import { menuRepository } from '../repositories/menuRepository';
 import { MenuItemPayload } from '../utils/types';
 
-export async function addMenuItem({ name, price, mealType, availability }: MenuItemPayload) {
+export async function addMenuItem({ name, price, mealType, availability }: MenuItemPayload, profileData: any) {
   try {
-    const menuItemId = await menuRepository.addMenuItem({ name, price, mealType, availability });
+    const menuItemId = await menuRepository.addMenuItem({ name, price, mealType, availability }, profileData);
     return { success: true, menuItemId };
   } catch (err) {
     console.error('Error adding menu item:', err);

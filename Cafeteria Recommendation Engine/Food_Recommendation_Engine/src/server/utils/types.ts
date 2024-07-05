@@ -19,6 +19,7 @@ export interface User {
     price: number;
     mealType:string;
     availability: boolean;
+    profileData?: any;
   }
   
   export interface FeedbackPayload {

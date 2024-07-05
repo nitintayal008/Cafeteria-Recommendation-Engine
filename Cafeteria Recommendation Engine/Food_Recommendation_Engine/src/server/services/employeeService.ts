@@ -33,14 +33,14 @@ export async function nextDayMenu(callback: Function) {
   }
 }
 
-export async function getRolloutItems(callback: Function) {
+export async function getRolloutItems(user: any, callback: Function) {
   const mealTypes = ['breakfast', 'lunch', 'dinner'];
   let allRolledOutItems: string[] = [];
   try {
     const messages: string[] = [];
 
     for (const mealType of mealTypes) {
-      const rolledOutItems = await menuRepository.getRolledOutItems(mealType);
+      const rolledOutItems = await menuRepository.getRolledOutItems(mealType, user);
       console.log("nitin00", rolledOutItems);
 
       if (rolledOutItems.length > 0) {
