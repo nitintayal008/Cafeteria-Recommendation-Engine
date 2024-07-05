@@ -22,6 +22,7 @@ export function handleEmployeeChoice(choice: string) {
       viewDiscardedItems();
       break;
     case "7":
+      logLogout();
       rl.close();
       socket.close();
       console.log("Goodbye!");
@@ -113,6 +114,14 @@ function viewNotification() {
     console.table(response.notification);
     promptUser("employee");
   });
+}
+
+async function logLogout() {
+  if(loggedInUser){
+    socket.emit("LogLogout", loggedInUser.employeeId, "logout", (response: any) => {
+      console.log(response.message);
+    });
+  }
 }
 
 function viewDiscardedItems() {

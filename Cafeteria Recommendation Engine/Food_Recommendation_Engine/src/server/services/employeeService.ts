@@ -1,5 +1,6 @@
 import { feedbackRepository } from '../repositories/feedbackRepository';
 import { menuRepository } from '../repositories/menuRepository';
+import { userRepository } from '../repositories/userRepository';
 import { FeedbackPayload } from '../utils/types';
 
 
@@ -125,5 +126,15 @@ export async function updateProfile(profileData:any,employeeId:number,  callback
   } catch (err) {
     console.error('Error updating profile:', err);
     callback({ success: false, message : "Failed to update profile!! You Have entered wrong data. Please try again."});
+  }
+}
+
+export async function LogLogout(employeeId: number, logType:string, callback: Function) {
+  try {
+    const message = await userRepository.logLogout(employeeId, logType);
+    callback({ success: true, message });
+  } catch (err) {
+    console.error('Error logging out:', err);
+    callback({ success: false, message: 'Failed to logout!!'});
   }
 }

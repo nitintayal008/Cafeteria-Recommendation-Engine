@@ -4,6 +4,7 @@ import { LoginPayload } from "../utils/types";
 export async function login({ employeeId, name }: LoginPayload, callback: Function) {
   try {
     const user = await userRepository.login(employeeId, name);
+    await userRepository.logLogout(user?.employeeId, 'login');
     if (user) {
       callback({ success: true, user });
     } else {
