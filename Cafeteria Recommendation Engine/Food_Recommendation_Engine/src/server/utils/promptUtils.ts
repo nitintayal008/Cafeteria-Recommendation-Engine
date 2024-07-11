@@ -26,7 +26,8 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('6. Rollout Food for tomorrow');
     console.log("7. Check responses for today's meals");
     console.log("8. Select today's meals");
-    console.log('9. Exit');
+    console.log('9. See Discard Menu Item');
+    console.log('10. Exit');
   } else if (role === 'employee') {
     console.log('1. Update Profile');
     console.log('2. View Menu');
