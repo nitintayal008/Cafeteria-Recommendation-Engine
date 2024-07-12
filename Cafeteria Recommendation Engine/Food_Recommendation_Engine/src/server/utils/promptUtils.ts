@@ -18,16 +18,15 @@ export function promptUser(role: 'admin' | 'chef' | 'employee') {
     console.log('5. Generate monthly feedback report');
     console.log('6. Exit');
   } else if (role === 'chef') {
-    console.log('1. View Discard Menu Item List');
-    console.log('2. View Monthly Feedback Report');
-    console.log('3. View Feedback');
-    console.log('4. Check recommend food items');
-    console.log('5. See the Menu');
-    console.log('6. Rollout Food for tomorrow');
-    console.log("7. Check responses for today's meals");
-    console.log("8. Select today's meals");
-    console.log('9. See Discard Menu Item');
-    console.log('10. Exit');
+    console.log('1. View Monthly Feedback Report');
+    console.log('2. View Feedback');
+    console.log('3. Check recommend food items');
+    console.log('4. See the Menu');
+    console.log('5. Rollout Food for tomorrow');
+    console.log("6. Check responses for today's meals");
+    console.log("7. Select today's meals");
+    console.log('8. See Discard Menu Item');
+    console.log('9. Exit');
   } else if (role === 'employee') {
     console.log('1. Update Profile');
     console.log('2. View Menu');

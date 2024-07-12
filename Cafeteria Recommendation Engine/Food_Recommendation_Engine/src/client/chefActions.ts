@@ -6,33 +6,30 @@ export async function handleChefChoice(choice: string) {
   try {
     switch (choice) {
       case "1":
-        await handleDiscardList();
-        break;
-      case "2":
         await viewMonthlyFeedback();
         break;
-      case "3":
+      case "2":
         await viewFeedbackForItem();
         break;
-      case "4":
+      case "3":
         await viewRecommendations();
         break;
-      case "5":
+      case "4":
         await viewMenu();
         break;
-      case "6":
+      case "5":
         await handleTopRecommendations();
         break;
-      case "7":
+      case "6":
         await checkResponses();
         break;
-      case "8":
+      case "7":
         await selectTodayMeal();
         break;
-      case "9":
+      case "8":
         await getDiscardMenuItems();
         break;
-      case "10":
+      case "9":
         rl.close();
         socket.close();
         console.log("Goodbye!");
