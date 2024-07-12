@@ -187,17 +187,22 @@ export async function createAndViewDiscardList(menuItems: any, callback: Functio
 }
 
 export async function deleteMenuItemByName(name: string, callback: Function) {
-  try {
-        const response = await menuRepository.deleteMenuItemByName(name, false);
-        if(response=="Deleted"){
-          callback({ success: true, message :"Sucessfully deleted from menu" });
-        }else{
-          callback({ success: true, message :"You allready deleted this from menu!! Now Come after 1 Month" });
-        }
-    } catch (err) {
-      console.error('Error updating menu item availability:', err);
-      callback({ success: false });
-    }
+  const canUse = await menuRepository.canUseFeature('discardMenuItem');
+  if(canUse){
+    try {
+      const response = await menuRepository.deleteMenuItemByName(name, false);
+      if(response=="Deleted"){
+        callback({ success: true, message :"Sucessfully deleted from menu" });
+      }else{
+        callback({ success: true, message :"You allready deleted this from menu!! Now Come after 1 Month" });
+      }
+  } catch (err) {
+    console.error('Error updating menu item availability:', err);
+    callback({ success: false });
+  }
+  }else{
+  callback({ success: false, message: "This feature is available only once a month. Come back next month to use this feature again." });
+  }
 }
 export async function saveFeedbackQuestion(data: any, callback: Function) {
   // Save feedback question to the database or in-memory store
@@ -213,4 +218,22 @@ export async function sendFeedbackQuestion(data: any, callback: Function) {
   console.log(message);
   notificationDB.createNotification('employee', message, 100);
   callback({ success: true, message: "Feedback question sent." });
+}
+
+export async function getDiscardMenuItems(callback: Function) {
+  const discardMenuItems = await menuRepository.fetchDiscardMenuItems();
+  console.log("discardedItems", discardMenuItems);
+  callback({ success: true, discardMenuItems });
+} 
+
+export async function fetchDetailedFeedback(menu_item_name: any, callback: Function) {
+  console.log("nitin_menu_item_name", menu_item_name);
+  const feedback = await menuRepository.fetchDetailedFeedback(menu_item_name);
+  console.log("nitin_feedback", feedback);
+  callback({ success: true, feedback });
+}
+
+export async function checkMonthlyUsage(discardedItem: any, callback: Function) {
+  const canUse = await menuRepository.canUseFeature(`getDetailedFeedback-${discardedItem}`);
+  callback({canUse});
 }

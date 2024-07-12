@@ -1,6 +1,6 @@
 import { RowDataPacket } from "mysql2";
 import connection from "../utils/database";
-import { MenuItem, MenuItemPayload } from "../utils/types";
+import { DiscardMenuItem, MenuItem, MenuItemPayload } from "../utils/types";
 import { notificationDB } from "./notificationRepository";
 
 class MenuRepository {
@@ -157,7 +157,7 @@ class MenuRepository {
   async getRolledOutItems(mealType: string, user: any) {
     try {
       const today = new Date().toISOString().slice(0, 10);
-      const [userAttributes] = await connection.query<RowDataPacket[]>('SELECT food_preference, spice_level, cuisine, sweet_tooth FROM employee_profile WHERE employee_id = ?', [user.employeeId]);
+      const [userAttributes] = await connection.query<RowDataPacket[]>('SELECT food_type, spice_level, cuisine, sweet_tooth FROM employee_profile WHERE employee_id = ?', [user.employeeId]);
 
       console.log("todcay:01", today);
       const [rows] = await connection.query<RowDataPacket[]>(
@@ -166,16 +166,16 @@ class MenuRepository {
         //     JOIN Menu_Item ON Rolledout_Item.menu_item_id = Menu_Item.id
         //     WHERE Rolledout_Item.date = ? AND Rolledout_Item.mealType = ?`,
         // [today, mealType]
-        `SELECT Menu_Item.name
+        `SELECT m.name
             FROM Rolledout_Item ri
             INNER JOIN Menu_Item m ON ri.menu_item_id = m.id
             INNER JOIN Menu_Item_Attribute mia ON m.id = mia.menu_item_id
-            WHERE ri.date = ? AND ri.meal_time = ?
+            WHERE ri.date = ? AND ri.mealType = ?
             ORDER BY (CASE WHEN mia.food_type = ? THEN 0 ELSE 1 END),
             (CASE WHEN mia.spice_level = ? THEN 0 ELSE 1 END),
-            (CASE WHEN mia.cuisine = ? THEN 0 ELSE 1 END),
+          (CASE WHEN mia.cuisine = ? THEN 0 ELSE 1 END),
             (CASE WHEN mia.sweet_tooth = ? THEN 0 ELSE 1 END) DESC`,
-            [today, mealType, userAttributes[0].food_preference, userAttributes[0].spice_level, userAttributes[0].cuisine, userAttributes[0].sweet_tooth]
+            [today, mealType, userAttributes[0].food_type, userAttributes[0].spice_level, userAttributes[0].cuisine, userAttributes[0].sweet_tooth]
       );
       console.log("rows:01", rows);
       return rows.map((row) => row.name);
@@ -389,6 +389,19 @@ async viewDiscardedItems(): Promise<string[]> {
   return discardedItems.map(item => item.message);
 }
 
+async getFeedbackItems(): Promise<RowDataPacket[]> {
+  try{
+      const [rows] = await connection.query<RowDataPacket[]>(`
+      SELECT REPLACE(usage_type, 'getDetailedFeedback-', '') as item_name
+      FROM Monthly_Usage_Log
+      WHERE usage_type LIKE 'getDetailedFeedback-%'`);
+      return rows;
+  } catch (error) {
+      console.error(`Failed to get menu items for feedback: ${error}`);
+      throw new Error('Error fetching menu items for feedback.');
+  }
+}
+
 async saveSolution( question: string, response: string, empId: number): Promise<String> {
   await connection.query('INSERT INTO Feedback_Response ( question, response, employeeId) VALUES (?, ?, ?)', [ question, response, empId]);
   return "Solution saved successfully.";
@@ -421,5 +434,82 @@ async updateProfile(profileData: any, empId: number): Promise<string> {
     throw new Error("Failed to update profile.");
   }
 }
+
+async fetchDiscardMenuItems(): Promise<DiscardMenuItem[]> {
+  try{
+      const [rows] = await connection.query<DiscardMenuItem[]>(`
+      SELECT m.id, m.name, s.average_rating, s.sentiment_score
+      FROM menu_item m
+      JOIN Sentiment s ON m.id = s.menu_item_id
+      WHERE s.average_rating <= 2
+      OR s.sentiment_score <= 20`);
+      return rows;
+  } catch (error) {
+      console.error(`Failed to fetch discard menu items: ${error}`);
+      throw new Error('Error fetching discard menu items.');
+  }
+}
+
+async fetchDetailedFeedback(menu_item_name: any): Promise<RowDataPacket[]> {
+  let name:any = "menu _item name not correct";
+  try{
+      const [menu_item_id] = await connection.query<RowDataPacket[]>('SELECT id as menu_item_id FROM menu_item WHERE name = ?', [menu_item_name]);
+      console.log("menu_item_id", menu_item_id.length);
+      // if(menu_item_id.length <= 0){
+      //   console.log("write correct menu item name");
+      //   return (name);
+      // }
+      const [rows] = await connection.query<RowDataPacket[]>('SELECT employeeId, question, response, response_date FROM Feedbacks_Response WHERE menu_item_id = ?', menu_item_id[0].menu_item_id);
+      return rows;
+  } catch (error) {
+      console.error(`Failed to get detailed feedback: ${error}`);
+      throw new Error('Error fetching detailed feedback.');
+  }
+}
+
+async canUseFeature(usageType: string): Promise<boolean> {
+  try {
+      const [rows] = await connection.query<RowDataPacket[]>('SELECT last_used FROM Monthly_Usage_Log WHERE usage_type = ?', [usageType]);
+      if (rows.length > 0) {
+          const lastUsed = new Date(rows[0].last_used);
+          const today = new Date();
+          return lastUsed.getMonth() !== today.getMonth() || lastUsed.getFullYear() !== today.getFullYear();
+      }
+      return true;
+  } catch (error) {
+      console.error(`Failed to check feature usage: ${error}`);
+      return false;
+  }
+}
+
+async saveDetailedFeedback(menuItem:any , employeeId:any, question:any, feedback: any ): Promise<void> {
+  console.log("nitin_data", question, feedback, menuItem);
+  try {
+      const [menuItemId] = await connection.query<RowDataPacket[]>('SELECT id FROM menu_item WHERE name = ?', menuItem);
+      console.log("emp_id", employeeId, menuItemId[0].id);
+      await connection.query(`
+          INSERT INTO Feedbacks_Response (menu_item_id, employeeId, question, response) 
+          VALUES 
+              (?, ?, ?, ?), 
+              (?, ?, ?, ?), 
+              (?, ?, ?, ?)
+      `, [
+        menuItemId[0].id, employeeId, question[0], feedback[0], 
+        menuItemId[0].id, employeeId, question[1], feedback[1], 
+        menuItemId[0].id, employeeId, question[2], feedback[2]
+      ]);
+  } catch (error) {
+      console.error(`Failed save detailed feedback: ${error}`);
+  }
+}
+
+async logMonthlyUsage(usageType: string): Promise<void> {
+  try {
+      await connection.query('INSERT INTO Monthly_Usage_Log (usage_type, last_used) VALUES (?, CURDATE()) ON DUPLICATE KEY UPDATE last_used = CURDATE()', [usageType]);
+  } catch (error) {
+      console.error(`Failed to log monthly usage: ${error}`);
+  }
+}
+
 }
 export const menuRepository = new MenuRepository();

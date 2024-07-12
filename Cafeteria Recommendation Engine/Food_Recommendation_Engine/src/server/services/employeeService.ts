@@ -89,7 +89,7 @@ export async function voteFood(item: string, mealType: string, username: string,
 
 export async function viewDiscardedItems(callback: Function) {
   try {
-    const discardedItems = await menuRepository.viewDiscardedItems();
+    const discardedItems = await menuRepository.getFeedbackItems();
     callback({ success: true, discardedItems });
   } catch (err) {
     console.error('Error viewing discarded items:', err);
@@ -137,4 +137,9 @@ export async function LogLogout(employeeId: number, logType:string, callback: Fu
     console.error('Error logging out:', err);
     callback({ success: false, message: 'Failed to logout!!'});
   }
+}
+
+export async function saveDetailedFeedback(menuItem:any ,employeeId:any, question:any, feedback:any, callback: Function){
+  const data = await menuRepository.saveDetailedFeedback(menuItem,employeeId, question, feedback);
+  callback(data);
 }

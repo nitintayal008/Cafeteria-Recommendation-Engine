@@ -1,5 +1,5 @@
 import { socket, loggedInUser } from "./client";
-import { promptUser, rl, askQuestion } from "../server/utils/promptUtils";
+import { askQuestion, promptUser, rl } from "../server/utils/promptUtils";
 
 export function handleEmployeeChoice(choice: string) {
   switch (choice) {
@@ -124,17 +124,35 @@ async function logLogout() {
   }
 }
 
-function viewDiscardedItems() {
-  socket.emit("viewDiscardedItems", (response: any) => {
+async function viewDiscardedItems() {
+  socket.emit("viewDiscardedItems", async (response: any) => {
     console.table(response.discardedItems);
-    const alreadyFeedbacked = socket.emit("checkFeedbackResponses", loggedInUser?.employeeId, (response: any) => {
-      return response;
-    });
-
-    if (!alreadyFeedbacked) {
-      answerDiscardItem(response.discardedItems);
-    } else {
-      console.log("You have already given feedback for the discarded items.");
+    if(response.discardedItems.length){
+      console.log('Please provide detailed feedback for the following menu items:');
+      for (const item of response.discardedItems) {
+          const question1 = `What you did not like about ${item.item_name}?`;
+          const question2 = `How would you like ${item.item_name} to taste?`;
+          const question3 = `Share your mom's recipe if you want.`;
+        const inputQ1 = await askQuestion(`What you did not like about ${item.item_name}?`);
+        const inputQ2 = await askQuestion(`How would you like ${item.item_name} to taste?`);
+        const inputQ3 = await askQuestion(`Share your mom's recipe if you want.`);
+        socket.emit(
+            'saveDetailedFeedback', 
+            item.item_name,
+            loggedInUser?.employeeId,
+             [question1, question2, question3], 
+             [inputQ1, inputQ2, inputQ3],
+              (response: any) => {
+                // console.log(response);
+              }
+        );
+      }
+      console.log("\nYour feedback has been recorded successfully.\n");
+      promptUser("employee");
+    }
+    else
+    {
+      console.log("Chef has not asked for detailed feedback of any menu item.");
       promptUser("employee");
     }
   });

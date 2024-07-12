@@ -1,7 +1,7 @@
 
 import { Socket } from 'socket.io';
 import { checkFoodItemExistence, viewMenu } from '../services/adminService';
-import { checkFeedbackResponses, getRolloutItems, giveFeedback, LogLogout, nextDayMenu, saveResponseForNextDay, saveSolution, updateProfile, viewDiscardedItems, viewNotification, voteFood } from '../services/employeeService';
+import { checkFeedbackResponses, getRolloutItems, giveFeedback, LogLogout, nextDayMenu, saveDetailedFeedback, saveResponseForNextDay, saveSolution, updateProfile, viewDiscardedItems, viewNotification, voteFood } from '../services/employeeService';
 
 export function handleEmployeeActions(socket: Socket) {
   socket.on('viewMenu', viewMenu);
@@ -21,4 +21,5 @@ export function handleEmployeeActions(socket: Socket) {
   socket.on('checkFeedbackResponses',checkFeedbackResponses);
   socket.on('updateProfile',updateProfile);
   socket.on("LogLogout", LogLogout);
+  socket.on("saveDetailedFeedback", saveDetailedFeedback);
 }

@@ -48,3 +48,11 @@ export interface SentimentData extends RowDataPacket {
     sentiment_score: number;
     date_calculated: Date;
 }
+
+export interface DiscardMenuItem extends RowDataPacket {
+  menu_item_id: number;
+  item_name: string;
+  average_rating: number;
+  sentiment_score: number;
+}
+

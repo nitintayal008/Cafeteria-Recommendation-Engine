@@ -86,30 +86,3 @@ export const INTENSIFIERS = [
     'truly',
     'remarkably',
 ];
-
-export const ADMIN_OPTIONS = [
-    '1. Add a food item',
-    '2. Remove an existing food item',
-    '3. Update the price of a food item',
-    '4. Update the availability of a food item',
-    '5. Logout',
-];
-
-export const CHEF_OPTIONS = [
-    '1. Check Recommended Food Items',
-    '2. See the Menu',
-    '3. Rollout Food for tomorrow',
-    "4. Check responses for today's meals",
-    "5. Select today's meals",
-    '6. View notifications',
-    '7. Generate Monthly User Feedback report',
-    '8. Logout',
-];  
-
-export const EMPLOYEE_OPTIONS = [
-    '1. Select Food for tomorrow',
-    "2. Rate today's food",
-    '3. View notifications',
-    '4. See the Menu',
-    '5. Logout',
-];
