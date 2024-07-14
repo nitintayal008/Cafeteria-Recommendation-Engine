@@ -272,6 +272,20 @@ async getRecommendedItems(mealTime: string): Promise<string[]> {
   return recommendedItems.map(item => item.name);
 }
 
+async checkIfallreadyRolledOut():Promise<boolean> {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [existingRollout] = await connection.query<RowDataPacket[]>(
+      'SELECT * FROM Rolledout_Item WHERE date = ?',
+      [today]
+  );
+
+  if (existingRollout.length > 0) {
+      return true;
+  }
+
+  return false;
+}
 async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -283,14 +297,12 @@ async rolloutMenuItems(mealTime: string, itemNames: string[]): Promise<string> {
   if (existingRollout.length > 0) {
       return 'Menu items have already been rolled out for today. Please wait until tomorrow.';
   }
-  console.log("nitin_itemname", itemNames)
   const formattedItems = itemNames.map(item => `%${item.trim()}%`);
   for (const itemName of formattedItems) {
       const [item] = await connection.query<RowDataPacket[]>(
           'SELECT id FROM menu_item WHERE name Like ? AND mealType = ?',
           [itemName, mealTime]
       );
-      console.log("nitin_item:01", item);
       if (item.length === 0) {
           return `Menu item ${itemName} does not exist for ${mealTime}.`;
       }
@@ -353,20 +365,25 @@ async selectFoodToPrepare(today: string, mealTime: string): Promise<RowDataPacke
 
 async saveSelectedMeal(data: { mealForBreakfast: string, mealForLunch: string, mealForDinner: string }): Promise<string> {
   const today = new Date().toISOString().slice(0, 10);
-
+  console.log("nnnn_data", data);
   const [breakfastMeal] = await connection.query<RowDataPacket[]>(
       'SELECT id FROM menu_item WHERE name = ?',
       [data.mealForBreakfast]
   );
+
+  console.log("nnnn_breakfastMeal", breakfastMeal);
   const [lunchMeal] = await connection.query<RowDataPacket[]>(
       'SELECT id FROM menu_item WHERE name = ?',
       [data.mealForLunch]
   );
+
+  console.log("nnnn_lunchMeal", lunchMeal)
   const [dinnerMeal] = await connection.query<RowDataPacket[]>(
       'SELECT id FROM menu_item WHERE name = ?',
       [data.mealForDinner]
   );
 
+  console.log("nnnn_dinnerMeal", dinnerMeal);
   await connection.query(
       'INSERT INTO Selected_Meal (menu_item_id, mealType, date) VALUES (?, \'breakfast\', ?), (?, \'lunch\', ?), (?, \'dinner\', ?)',
       [breakfastMeal[0].id, today, lunchMeal[0].id, today, dinnerMeal[0].id, today]
@@ -455,10 +472,6 @@ async fetchDetailedFeedback(menu_item_name: any): Promise<RowDataPacket[]> {
   try{
       const [menu_item_id] = await connection.query<RowDataPacket[]>('SELECT id as menu_item_id FROM menu_item WHERE name = ?', [menu_item_name]);
       console.log("menu_item_id", menu_item_id.length);
-      // if(menu_item_id.length <= 0){
-      //   console.log("write correct menu item name");
-      //   return (name);
-      // }
       const [rows] = await connection.query<RowDataPacket[]>('SELECT employeeId, question, response, response_date FROM Feedbacks_Response WHERE menu_item_id = ?', menu_item_id[0].menu_item_id);
       return rows;
   } catch (error) {
@@ -511,5 +524,58 @@ async logMonthlyUsage(usageType: string): Promise<void> {
   }
 }
 
+async checkMenuItem(item: string): Promise<Array<string>> {
+  const trimmedItem = item.trim().toLowerCase();
+  const [rows] = await connection.query<RowDataPacket[]>(
+    'SELECT * FROM menu_item WHERE LOWER(TRIM(name)) = ?',
+    [trimmedItem]
+  );
+  return rows.map((row) => row.name);
+}
+
+async checkEmployeeId(employeeId: number): Promise<boolean> {
+  const [rows] = await connection.query<RowDataPacket[]>(
+    'SELECT * FROM User WHERE employeeId = ?',
+    [employeeId]
+  );
+  return rows.length > 0;
+}
+
+// Assuming a method in menuRepository to check if meals are selected for today
+async areMealsSelectedForToday(): Promise<boolean> {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const mealTypes = ["breakfast", "lunch", "dinner"];
+    
+    // Query to check if meals are selected for today's date and any meal type
+    const query = `
+      SELECT COUNT(*) as count
+      FROM selected_meal
+      WHERE date = ? AND mealType IN (?)
+    `;
+    
+    const [rows] = await connection.query<RowDataPacket[]>(query, [today, mealTypes]);
+    const count = rows[0].count;
+
+    return count > 0;
+  } catch (error) {
+    console.error("Error checking selected meals for today:", error);
+    throw error; // Propagate the error to handle it in selectTodayMeal function
+  }
+}
+
+async checkFeedbackExists(itemname: string, employeeId: number ): Promise<boolean> {
+  const [menu_item_id] = await connection.query<RowDataPacket[]>(
+    'SELECT id FROM menu_item WHERE name = ?',
+    [itemname]
+  );
+  console.log("nitin_menu_item_id", menu_item_id[0].id);
+  const [rows] = await connection.query<RowDataPacket[]>(
+    'SELECT * FROM Feedbacks_Response WHERE menu_item_id = ? AND employeeId = ?',
+    [menu_item_id[0].id, employeeId]
+  );
+  console.log("nitin_rows", rows);
+  return rows.length > 0;
+}
 }
 export const menuRepository = new MenuRepository();

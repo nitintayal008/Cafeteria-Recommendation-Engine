@@ -36,18 +36,21 @@ export async function nextDayMenu(callback: Function) {
 
 export async function getRolloutItems(user: any, callback: Function) {
   const mealTypes = ['breakfast', 'lunch', 'dinner'];
-  let allRolledOutItems: string[] = [];
-  try {
-    const messages: string[] = [];
+  let messages: string[] = [];
 
+  try {
     for (const mealType of mealTypes) {
       const rolledOutItems = await menuRepository.getRolledOutItems(mealType, user);
-      console.log("nitin00", rolledOutItems);
+      console.log("Rolled out items for", mealType, ":", rolledOutItems);
 
       if (rolledOutItems.length > 0) {
-        const message = `Rolled out item for ${mealType} is: ${rolledOutItems.join(', ')}`;
+        const message = `Rolled out items for ${mealType} are: ${rolledOutItems.join(', ')}`;
         messages.push(message);
       }
+    }
+
+    if (messages.length === 0) {
+      messages.push("Chef has not rolled out any items yet.");
     }
 
     callback({ status: 'printMessage', message: messages.join('\n') });
@@ -143,3 +146,9 @@ export async function saveDetailedFeedback(menuItem:any ,employeeId:any, questio
   const data = await menuRepository.saveDetailedFeedback(menuItem,employeeId, question, feedback);
   callback(data);
 }
+
+export async function checkFeedbackExists(itemname:string, employeeId:any, callback: Function){
+  const data = await menuRepository.checkFeedbackExists(itemname, employeeId);
+  callback(data);
+}
+

@@ -62,49 +62,87 @@ async function updateProfile() {
 
 function getMenu() {
   socket.emit("getMenu", (response: any) => {
-    console.table(response.menuItems);
+    const filteredMenuItems = response.menuItems.map((item: any) => {
+      const { next_day_menu, ...rest } = item;
+      
+      for (const key in rest) {
+        if (rest[key] === null) {
+          rest[key] = 'Not Available';
+        }
+      }
+      return rest;
+    });
+
+    console.table(filteredMenuItems);
     promptUser("employee");
   });
 }
 
 function giveFeedback() {
-  rl.question("Enter item ID to give feedback on: ", (itemId) => {
-    const id = parseInt(itemId);
+  function askForItemId() {
+    rl.question("Enter item ID to give feedback on: ", (itemId) => {
+      const id = parseInt(itemId);
 
-    socket.emit("checkFoodItemExistence", id, (exists: boolean) => {
-      if (exists) {
-        rl.question("Enter your comment: ", (comment) => {
-          rl.question("Enter your rating (1-5): ", (rating) => {
-            socket.emit(
-              "giveFeedback",
-              {
-                itemId: parseInt(itemId),
-                comment,
-                rating: parseInt(rating),
-              },
-              (response: any) => {
-                console.log(response);
-                promptUser("employee");
+      socket.emit("checkFoodItemExistence", id, (exists: boolean) => {
+        if (exists) {
+          rl.question("Enter your comment: ", (comment) => {
+            if (!isNaN(parseFloat(comment)) || comment.trim().length === 0) {
+              console.log("Invalid comment. Please enter a valid string comment.");
+              askForItemId(); // Ask for item ID again
+              return;
+            }
+
+            rl.question("Enter your rating (1-5): ", (ratingInput) => {
+              const rating = parseInt(ratingInput);
+
+              if (isNaN(rating) || rating < 1 || rating > 5) {
+                console.log("Invalid rating. Please enter a number between 1 and 5.");
+                askForItemId(); // Ask for item ID again
+                return;
               }
-            );
+
+              socket.emit(
+                "giveFeedback",
+                {
+                  itemId: parseInt(itemId),
+                  comment: comment.trim(),
+                  rating,
+                },
+                (response: any) => {
+                  console.log(response);
+                  promptUser("employee");
+                }
+              );
+            });
           });
-        });
-      } else {
-        console.log(`Menu item with ID ${itemId} does not exist.`);
-        promptUser("employee");
-      }
+        } else {
+          console.log(`Menu item with ID ${itemId} does not exist. Please enter a valid item ID.`);
+          askForItemId(); // Ask for item ID again
+        }
+      });
     });
-  });
+  }
+
+  askForItemId(); // Start asking for item ID
 }
 
 function getRolloutItems() {
   socket.emit("getRolloutItems", loggedInUser, (response: any) => {
     console.log(response);
-    if (loggedInUser) {
-      voteTomorrowFood(loggedInUser.name);
-    } else {
-      console.log("User not logged in");
+    if (response.message === 'Chef has not rolled out any items yet.') {
+      console.log(response.message); // Log the message received
       promptUser("employee");
+      return; 
+    }
+    if (response.status === 'printMessage') {
+      if (loggedInUser) {
+        voteTomorrowFood(loggedInUser.name);
+      } else {
+        console.log("User not logged in");
+        promptUser("employee");
+      }
+    } else if (response.status === 'error') {
+      console.error("Error getting rollout items:", response.message);
     }
   });
 }
@@ -127,34 +165,55 @@ async function logLogout() {
 async function viewDiscardedItems() {
   socket.emit("viewDiscardedItems", async (response: any) => {
     console.table(response.discardedItems);
-    if(response.discardedItems.length){
-      console.log('Please provide detailed feedback for the following menu items:');
+
+    if (response.discardedItems.length) {
+      console.log('Please select the menu items you want to provide detailed feedback on (separate multiple items with commas):');
+
+      const selectedItems = await askQuestion('Enter item names:');
+      const selectedItemsArray = selectedItems.split(',').map(item => item.trim().toLowerCase());
+
       for (const item of response.discardedItems) {
-          const question1 = `What you did not like about ${item.item_name}?`;
-          const question2 = `How would you like ${item.item_name} to taste?`;
-          const question3 = `Share your mom's recipe if you want.`;
-        const inputQ1 = await askQuestion(`What you did not like about ${item.item_name}?`);
-        const inputQ2 = await askQuestion(`How would you like ${item.item_name} to taste?`);
-        const inputQ3 = await askQuestion(`Share your mom's recipe if you want.`);
-        socket.emit(
-            'saveDetailedFeedback', 
-            item.item_name,
-            loggedInUser?.employeeId,
-             [question1, question2, question3], 
-             [inputQ1, inputQ2, inputQ3],
+        if (selectedItemsArray.includes(item.item_name.toLowerCase())) {
+          const feedbackExists = await checkIfFeedbackExists(item.item_name, loggedInUser?.employeeId);
+          if (feedbackExists) {
+            console.log(`You have already given feedback for ${item.item_name}.`);
+          } else {
+            const question1 = `What you did not like about ${item.item_name}?`;
+            const question2 = `How would you like ${item.item_name} to taste?`;
+            const question3 = `Share your mom's recipe if you want.`;
+
+            const inputQ1 = await askQuestion(question1);
+            const inputQ2 = await askQuestion(question2);
+            const inputQ3 = await askQuestion(question3);
+
+            socket.emit(
+              'saveDetailedFeedback',
+              item.item_name,
+              loggedInUser?.employeeId,
+              [question1, question2, question3],
+              [inputQ1, inputQ2, inputQ3],
               (response: any) => {
-                // console.log(response);
+                // Handle response if needed
               }
-        );
+            );
+          }
+        }
       }
+
       console.log("\nYour feedback has been recorded successfully.\n");
       promptUser("employee");
-    }
-    else
-    {
-      console.log("Chef has not asked for detailed feedback of any menu item.");
+    } else {
+      console.log("Chef has not asked for detailed feedback on any menu item.");
       promptUser("employee");
     }
+  });
+}
+
+function checkIfFeedbackExists(itemName: string, employeeId: any): Promise<boolean> {
+  return new Promise((resolve) => {
+    socket.emit('checkFeedbackExists', itemName, employeeId, (exists: boolean) => {
+      resolve(exists);
+    });
   });
 }
 

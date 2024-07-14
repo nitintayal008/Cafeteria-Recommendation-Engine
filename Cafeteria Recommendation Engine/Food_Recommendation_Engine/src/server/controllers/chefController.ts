@@ -1,5 +1,5 @@
 import { Socket } from 'socket.io';
-import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation, getMenu, getTopRecommendations, rolloutFoodItem, checkResponses, selectTodayMeal, saveSelectedMeal, createAndViewDiscardList, saveFeedbackQuestion, deleteMenuItemByName, sendFeedbackQuestion, getDiscardMenuItems, fetchDetailedFeedback, checkMonthlyUsage } from '../services/chefService';
+import { recommendMenu, viewMonthlyFeedback, viewFeedback, selectNextDayMenu, storeEmployeeChoice, finalizeMenu, getRecommendation, getMenu, getTopRecommendations, rolloutFoodItem, checkResponses, selectTodayMeal, saveSelectedMeal, createAndViewDiscardList, saveFeedbackQuestion, deleteMenuItemByName, sendFeedbackQuestion, getDiscardMenuItems, fetchDetailedFeedback, checkMonthlyUsage, checkIfAlreadyResponded } from '../services/chefService';
 import { getFoodItemForNextDay } from '../utils/recommendationEngine';
  
 export function handleChefActions(socket: Socket) {
@@ -51,4 +51,5 @@ export function handleChefActions(socket: Socket) {
   socket.on("getDiscardMenuItems", getDiscardMenuItems);
   socket.on("fetchDetailedFeedback", fetchDetailedFeedback);
   socket.on("checkMonthlyUsage", checkMonthlyUsage);
+  socket.on("checkIfAlreadyResponded", checkIfAlreadyResponded)
 }

@@ -177,7 +177,6 @@ export async function saveSelectedMeal(meals: { mealForBreakfast: string; mealFo
 
 export async function createAndViewDiscardList(menuItems: any, callback: Function){
   const badRatingFood = menuItems.find((item: { average_rating: string | null; }) => item.average_rating !== null && parseFloat(item.average_rating) <=  2.0);
-    console.log("nitin--dd",badRatingFood.name);
     if(badRatingFood){
       callback({success: true, DiscardedItem : badRatingFood.name})
     }
@@ -230,10 +229,32 @@ export async function fetchDetailedFeedback(menu_item_name: any, callback: Funct
   console.log("nitin_menu_item_name", menu_item_name);
   const feedback = await menuRepository.fetchDetailedFeedback(menu_item_name);
   console.log("nitin_feedback", feedback);
+  if(feedback.length === 0){
+    callback({ success: false, message: "No feedback found for this item." });
+  }else{
   callback({ success: true, feedback });
+  }
 }
 
 export async function checkMonthlyUsage(discardedItem: any, callback: Function) {
   const canUse = await menuRepository.canUseFeature(`getDetailedFeedback-${discardedItem}`);
   callback({canUse});
 }
+
+export async function checkIfAlreadyResponded(callback: Function) {
+  const response = await menuRepository.checkIfallreadyRolledOut();
+  callback({ sucess: response });
+}
+
+export async function isMenuItemValid(item: string): Promise<boolean> {
+  const trimmedItem = item.trim().toLowerCase();
+  const menuItems = await menuRepository.checkMenuItem(trimmedItem); // Fetch all menu items from the database
+  return menuItems.map(menuItem => menuItem.trim().toLowerCase()).includes(trimmedItem);
+}
+
+export async function isEmployeeIdValid(employeeId: string): Promise<boolean> {
+  const trimmedEmployeeId = employeeId.trim();
+  const isValid = await menuRepository.checkEmployeeId(Number(trimmedEmployeeId));
+  return isValid;
+}
+
