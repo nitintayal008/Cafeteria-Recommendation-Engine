@@ -45,6 +45,18 @@ export async function handleChefChoice(choice: string) {
   }
 }
 
+async function askForFoodItem(): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question("Enter the name of the food item to fetch detailed feedback: ", resolve);
+  });
+}
+
+async function askForFoodItemToRemove(): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question("Enter the name of the food item to remove: ", resolve);
+  });
+}
+
 async function handleDiscardList() {
   socket.emit("getMenu", (response: any) => {
     socket.emit("createAndViewDiscardList", response.menuItems, (response: any) => {
@@ -70,7 +82,7 @@ async function getValidMenuItem(promptMessage: string): Promise<string> {
 }
 
 function handleDiscardOptions(discardedItem: any, discardedItemNames: any) {
-  console.log(`\nOptions for Discarded Item (${discardedItem}):`);
+  console.log(`\nOptions for Discarded Item `);
   console.log("1) Remove the Food Item from Menu List");
   console.log("2) Get Detailed Feedback");
   console.log("3) Fetch Detailed Feedback");
@@ -98,7 +110,7 @@ async function removeFoodItem() {
 
   try {
     while (true) {
-      const itemName = await askForFoodItem();
+      const itemName = await askForFoodItemToRemove();
       if (await isMenuItemValid(itemName)) {
         socket.emit("removeFoodItem", itemName, (response: any) => {
           console.log(response.message);
@@ -113,12 +125,6 @@ async function removeFoodItem() {
     console.error("Error removing food item:", error);
     promptUser("chef");
   }
-}
-
-async function askForFoodItem(): Promise<string> {
-  return new Promise((resolve) => {
-    rl.question("Enter the name of the food item to fetch detailed feedback: ", resolve);
-  });
 }
 
 async function fetchDetailedFeedback() {
@@ -167,8 +173,7 @@ async function fetchDetailedFeedback() {
 
 async function rollOutFeedbackQuestions(discardedItem: string) {
   socket.emit("checkMonthlyUsage", discardedItem, async (response: any)=>{
-    console.log(response);
-    console.log("result_nitin",response.canUse, discardedItem);
+    // console.log(response);
     if(response.canUse){
       await menuRepository.logMonthlyUsage(`getDetailedFeedback-${discardedItem}`);
       console.log(`Rolling out questions for detailed feedback on ${discardedItem}.`);
@@ -189,6 +194,7 @@ async function rollOutFeedbackQuestions(discardedItem: string) {
       }, 200);
     }else{
       console.log(`Feedback for ${discardedItem} has been asked already this month. Try again next month.`)
+      promptUser("chef");
     }
   })
 }
