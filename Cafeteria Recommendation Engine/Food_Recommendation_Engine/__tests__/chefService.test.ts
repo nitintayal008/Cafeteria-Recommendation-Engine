@@ -1,5 +1,3 @@
-// __tests__/chefService.test.ts
-
 import { recommendMenu, viewMonthlyFeedback } from '../src/server/services/chefService';
 import { menuRepository } from '../src/server/repositories/menuRepository';
 
@@ -24,21 +22,10 @@ describe('Chef Service', () => {
     expect(callback).toHaveBeenCalledWith({ success: true, recommendedItems: ['Item1', 'Item2'] });
   });
 
-//   it('should handle errors when recommending menu', async () => {
-//     (menuRepository.recommendMenu as jest.Mock).mockRejectedValue(new Error('Test Error'));
-//     await recommendMenu(mockItemIds, callback);
-//     expect(callback).toHaveBeenCalledWith({ success: false, message: 'Error recommending menu.' });
-//   });
-
   it('should view monthly feedback', async () => {
     (menuRepository.viewMonthlyFeedback as jest.Mock).mockResolvedValue('FeedbackReport');
     await viewMonthlyFeedback(callback);
     expect(callback).toHaveBeenCalledWith({ success: true, feedbackReport: 'FeedbackReport' });
   });
 
-//   it('should handle errors when viewing monthly feedback', async () => {
-//     (menuRepository.viewMonthlyFeedback as jest.Mock).mockRejectedValue(new Error('Test Error'));
-//     await viewMonthlyFeedback(callback);
-//     expect(callback).toHaveBeenCalledWith({ success: false, message: 'Error fetching monthly feedback report.' });
-//   });
 });

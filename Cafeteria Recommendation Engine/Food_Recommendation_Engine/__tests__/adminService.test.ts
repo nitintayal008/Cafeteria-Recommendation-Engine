@@ -1,5 +1,3 @@
-// __tests__/adminService.test.ts
-
 import { addMenuItem, updateMenuItem, deleteMenuItem, viewMenu, checkFoodItemExistence } from '../src/server/services/adminService';
 import { menuRepository } from '../src/server/repositories/menuRepository';
 import { MenuItemPayload } from '../src/server/utils/types';
