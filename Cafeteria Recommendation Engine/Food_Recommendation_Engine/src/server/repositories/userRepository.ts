@@ -1,16 +1,5 @@
 import connection from "../utils/database";
-import { RowDataPacket } from "mysql2";
-
-interface User extends RowDataPacket {
-  id: number;
-  employeeId: string;
-  name: string;
-  role: 'admin' | 'chef' | 'employee';
-}
-
-export interface UserId extends RowDataPacket {
-  employee_id: number;
-}
+import { User } from "../utils/types";
 
 class UserRepository {
   async login(employeeId: string, name: string): Promise<User | null> {

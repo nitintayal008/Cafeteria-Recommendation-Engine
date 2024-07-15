@@ -31,6 +31,18 @@ export class NotificationDB {
             throw new Error('Error retrieving notifications.');
         }
     }
+
+    async viewNotification() {
+      try {
+        const [rows] = await connection.query(
+          'SELECT * FROM notification WHERE user_role = "employee" ORDER BY notification_date DESC LIMIT 10'
+        );
+        return rows;
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        throw error;
+      }
+    }
 }
 
-export const notificationDB = new NotificationDB();
+export const notificationRepository = new NotificationDB();

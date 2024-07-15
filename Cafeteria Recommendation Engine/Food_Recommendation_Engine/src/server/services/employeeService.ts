@@ -1,5 +1,6 @@
 import { feedbackRepository } from '../repositories/feedbackRepository';
 import { menuRepository } from '../repositories/menuRepository';
+import { notificationRepository } from '../repositories/notificationRepository';
 import { userRepository } from '../repositories/userRepository';
 import { FeedbackPayload } from '../utils/types';
 
@@ -72,7 +73,7 @@ export async function saveResponseForNextDay(nextDayMenuItems: number[], callbac
 
 export async function viewNotification(callback: Function) {
   try {
-    const notification = await menuRepository.viewNotification();
+    const notification = await notificationRepository.viewNotification();
     callback({ success: true, notification });
   } catch (err) {
     console.error('Error viewing notification:', err);
@@ -92,7 +93,7 @@ export async function voteFood(item: string, mealType: string, username: string,
 
 export async function viewDiscardedItems(callback: Function) {
   try {
-    const discardedItems = await menuRepository.getFeedbackItems();
+    const discardedItems = await feedbackRepository.getFeedbackItems();
     callback({ success: true, discardedItems });
   } catch (err) {
     console.error('Error viewing discarded items:', err);
@@ -112,7 +113,7 @@ export async function saveSolution(question: string, answer: string, userid: num
 
 export async function checkFeedbackResponses(userid: number, callback: Function) {
   try {
-    const exists = await menuRepository.checkFeedbackResponses(userid);
+    const exists = await feedbackRepository.checkFeedbackResponses(userid);
     console.log('exists', exists);
     callback(exists);
   } catch (err) {
@@ -143,12 +144,12 @@ export async function LogLogout(employeeId: number, logType:string, callback: Fu
 }
 
 export async function saveDetailedFeedback(menuItem:any ,employeeId:any, question:any, feedback:any, callback: Function){
-  const data = await menuRepository.saveDetailedFeedback(menuItem,employeeId, question, feedback);
+  const data = await feedbackRepository.saveDetailedFeedback(menuItem,employeeId, question, feedback);
   callback(data);
 }
 
 export async function checkFeedbackExists(itemname:string, employeeId:any, callback: Function){
-  const data = await menuRepository.checkFeedbackExists(itemname, employeeId);
+  const data = await feedbackRepository.checkFeedbackExists(itemname, employeeId);
   callback(data);
 }
 

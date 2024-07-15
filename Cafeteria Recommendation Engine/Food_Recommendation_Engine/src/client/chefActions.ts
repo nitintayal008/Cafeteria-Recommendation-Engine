@@ -107,7 +107,6 @@ function handleDiscardOptions(discardedItem: any, discardedItemNames: any) {
 }
 
 async function removeFoodItem() {
-
   try {
     while (true) {
       const itemName = await askForFoodItemToRemove();

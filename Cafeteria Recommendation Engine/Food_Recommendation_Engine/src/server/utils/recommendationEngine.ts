@@ -1,10 +1,5 @@
 import { menuRepository } from '../repositories/menuRepository';
-
-interface RecommendedItem {
-  id: number;
-  name: string;
-  score: number;
-}
+import { RecommendedItem } from './types';
 
 export async function getFoodItemForNextDay(menuType: string, returnItemListSize: number): Promise<RecommendedItem[]> {
     console.log("menuType", menuType);

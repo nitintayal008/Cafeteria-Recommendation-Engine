@@ -192,7 +192,6 @@ async function viewDiscardedItems() {
               [question1, question2, question3],
               [inputQ1, inputQ2, inputQ3],
               (response: any) => {
-                // Handle response if needed
               }
             );
           }

@@ -1,5 +1,6 @@
+import { RowDataPacket } from 'mysql2';
 import connection from '../utils/database';
-import { RatingComment, SentimentData } from '../utils/types';
+import { MenuItem, RatingComment, SentimentData } from '../utils/types';
 
  class RecommendationDB {
     async getRecentComments(threeMonthsAgo: string): Promise<RatingComment[]> {
@@ -49,6 +50,45 @@ import { RatingComment, SentimentData } from '../utils/types';
             throw new Error('Error inserting sentiments.');
         }
     }
+
+    async getRecommendedItems(mealTime: string): Promise<string[]> {
+        const [recommendedItems] = await connection.query<RowDataPacket[]>(
+            `SELECT menu_item.name
+            FROM menu_item
+            JOIN Sentiment ON menu_item.id = Sentiment.menu_item_id
+            WHERE menu_item.mealType = ?
+            ORDER BY Sentiment.sentiment_score DESC, Sentiment.average_rating DESC
+            LIMIT 5`,
+            [mealTime]
+        );
+        console.log("recommendedItems:01", recommendedItems);
+      
+        return recommendedItems.map(item => item.name);
+      }
+
+      async getRecommendations(): Promise<MenuItem[]> {
+        try {
+            const query = `
+            SELECT m.*, s.sentiment, s.average_rating, s.sentiment_score 
+            FROM menu_item m 
+            LEFT JOIN Sentiment s ON m.id = s.menu_item_id 
+            ORDER BY s.average_rating DESC 
+            LIMIT 10`;
+            const [menuItems] = await connection.query<MenuItem[]>(query);
+            return menuItems;
+        } catch (error) {
+            console.error(`Failed to insert sentiments: ${error}`);
+            throw new Error('Error inserting sentiments.');
+        }
+      }
+
+      async recommendMenu(itemIds: number[]) {
+        const [rows] = await connection.query(
+          "SELECT * FROM menu_item WHERE id IN (?)",
+          [itemIds]
+        );
+        return rows;
+      }
 }
 
 export const recommendationDB = new RecommendationDB();

@@ -56,3 +56,27 @@ export interface DiscardMenuItem extends RowDataPacket {
   sentiment_score: number;
 }
 
+export interface Feedback {
+  id: number;
+  menu_item_id: number;
+  comment: string;
+  rating: number;
+  feedback_date: Date;
+}
+
+export interface User extends RowDataPacket {
+  id: number;
+  employeeId: string;
+  name: string;
+  role: 'admin' | 'chef' | 'employee';
+}
+
+export interface UserId extends RowDataPacket {
+  employee_id: number;
+}
+
+export interface RecommendedItem {
+  id: number;
+  name: string;
+  score: number;
+}

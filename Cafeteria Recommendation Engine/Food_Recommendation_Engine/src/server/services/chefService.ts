@@ -1,5 +1,7 @@
+import { feedbackRepository } from '../repositories/feedbackRepository';
 import { menuRepository } from '../repositories/menuRepository';
-import {  notificationDB } from '../repositories/notificationRepository';
+import {  notificationRepository } from '../repositories/notificationRepository';
+import { recommendationDB } from '../repositories/recommendationRepository';
 import { getFoodItemForNextDay as recommendationEngineGetFoodItemForNextDay } from '../utils/recommendationEngine';
 import { calculateSentiments } from './recommendationService';
  
@@ -7,7 +9,7 @@ const employeeChoices = new Map<string, number[]>();
 
 export async function recommendMenu(itemIds: number[], callback: Function) {
   try {
-    const recommendedItems = await menuRepository.recommendMenu(itemIds);
+    const recommendedItems = await recommendationDB.recommendMenu(itemIds);
     callback({ success: true, recommendedItems });
   } catch (err) {
     console.error('Error recommending menu:', err);
@@ -17,7 +19,7 @@ export async function recommendMenu(itemIds: number[], callback: Function) {
  
 export async function viewMonthlyFeedback(callback: Function) {
   try {
-    const feedbackReport = await menuRepository.viewMonthlyFeedback();
+    const feedbackReport = await feedbackRepository.viewMonthlyFeedback();
     callback({ success: true, feedbackReport });
   } catch (err) {
     console.error('Error fetching monthly feedback report:', err);
@@ -27,7 +29,7 @@ export async function viewMonthlyFeedback(callback: Function) {
  
 export async function viewFeedback(itemId: number, callback: Function) {
   try {
-    const feedback = await menuRepository.viewFeedback(itemId);
+    const feedback = await feedbackRepository.viewFeedback(itemId);
     callback({ success: true, feedback });
   } catch (err) {
     console.error('Error fetching feedback:', err);
@@ -84,7 +86,7 @@ export async function finalizeMenu() {
 export async function getRecommendation(callback: Function) {
   try {
     await calculateSentiments();
-    const menuItems = await menuRepository.getRecommendations();
+    const menuItems = await recommendationDB.getRecommendations();
     callback({ success: true, menuItems });
   } catch (err) {
     console.error('Error getting recommendation:', err);
@@ -109,7 +111,7 @@ export async function getTopRecommendations(callback: Function) {
 
   try {
     for (const mealTime of mealTimes) {
-      const recommendedItems = await menuRepository.getRecommendedItems(mealTime);
+      const recommendedItems = await recommendationDB.getRecommendedItems(mealTime);
       console.log('recommendedItems', recommendedItems);
       const message = `Top recommended items for ${mealTime}: ${recommendedItems.join(', ')}`;
       items.push(message);
@@ -129,7 +131,7 @@ export async function rolloutFoodItem(mealTime: string, items: string[]) {
     if(message === 'Menu items have already been rolled out for today. Please wait until tomorrow.'){
       return message;
     }else{
-      notificationDB.createNotification('employee', `Chef has rolled out ${items} for tomorrow's ${mealTime}.`, 1);
+      notificationRepository.createNotification('employee', `Chef has rolled out ${items} for tomorrow's ${mealTime}.`, 1);
     }
   } catch (err) {
     console.error('Error rolling out food item:', err);
@@ -204,7 +206,7 @@ export async function saveFeedbackQuestion(data: any, callback: Function) {
   // Save feedback question to the database or in-memory store
   const message = `Feedback for ${data.discardedItem}: ${data.question} - ${data.response}`;
   console.log(message);
-  notificationDB.createNotification('employee', message, 1);
+  notificationRepository.createNotification('employee', message, 1);
   callback({ success: true, message: "Feedback question saved." });
 }
 
@@ -212,7 +214,7 @@ export async function sendFeedbackQuestion(data: any, callback: Function) {
   // Send feedback question to the employee
   const message = `${data.question}`;
   console.log(message);
-  notificationDB.createNotification('employee', message, 100);
+  notificationRepository.createNotification('employee', message, 100);
   callback({ success: true, message: "Feedback question sent." });
 }
 
@@ -222,7 +224,7 @@ export async function getDiscardMenuItems(callback: Function) {
 } 
 
 export async function fetchDetailedFeedback(menu_item_name: any, callback: Function) {
-  const feedback = await menuRepository.fetchDetailedFeedback(menu_item_name);
+  const feedback = await feedbackRepository.fetchDetailedFeedback(menu_item_name);
   if(feedback.length === 0){
     callback({ success: false, message: "No feedback found for this item." });
   }else{
