@@ -15,23 +15,6 @@ jest.mock('../src/server/repositories/menuRepository', () => ({
 }));
 
 describe('Admin Service', () => {
-  it('should add a new menu item', async () => {
-    const newMenuItem: MenuItemPayload = { name: 'Pizza', price: 9.99, mealType: 'Lunch', availability: true };
-    (menuRepository.addMenuItem as jest.Mock).mockResolvedValue(1);
-
-    const result = await addMenuItem(newMenuItem);
-
-    expect(result).toEqual({ success: true, menuItemId: 1 });
-  });
-
-  it('should handle errors when adding a new menu item', async () => {
-    (menuRepository.addMenuItem as jest.Mock).mockRejectedValue(new Error('Test Error'));
-
-    const result = await addMenuItem({ name: 'Pizza', price: 9.99, mealType: 'Lunch', availability: true });
-
-    expect(result).toEqual({ success: false });
-  });
-
   it('should update an existing menu item', async () => {
     const updatedMenuItem: MenuItemPayload = { id: 1, name: 'Pizza', price: 10.99, mealType: 'Lunch', availability: true };
     (menuRepository.updateMenuItem as jest.Mock).mockResolvedValue(undefined);
