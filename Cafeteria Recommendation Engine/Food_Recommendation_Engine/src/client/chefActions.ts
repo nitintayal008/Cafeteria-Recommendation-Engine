@@ -173,7 +173,6 @@ async function fetchDetailedFeedback() {
 
 async function rollOutFeedbackQuestions(discardedItem: string) {
   socket.emit("checkMonthlyUsage", discardedItem, async (response: any)=>{
-    // console.log(response);
     if(response.canUse){
       await menuRepository.logMonthlyUsage(`getDetailedFeedback-${discardedItem}`);
       console.log(`Rolling out questions for detailed feedback on ${discardedItem}.`);
@@ -273,7 +272,6 @@ async function handleTopRecommendations() {
   socket.emit("getTopRecommendations", (response: any) => {
     console.table(response.items);
     socket.emit("checkIfAlreadyResponded", (response: any) => {
-      // console.log(response);
       if (response.sucess) {
         console.log("Menu items have already been rolled out for today. Please wait until tomorrow.");
         promptUser("chef");
@@ -354,7 +352,7 @@ async function selectTodayMeal() {
     });
   } catch (error) {
     console.error("Error selecting today's meal:", error);
-    promptUser("chef"); // Handle error and prompt user
+    promptUser("chef");
   }
 }
 
@@ -401,7 +399,6 @@ async function selectMeal() {
     meals.mealForDinner = await getValidatedMeal("dinner");
 
     socket.emit("saveSelectedMeal", meals, (response: any) => {
-      // console.log(response);
       console.log("\x1b[32mMeals Selected Successfully.\x1b[0m");
       console.log("\x1b[36mThank you for selecting today's meals.\x1b[0m"); 
       console.log("\x1b[35mNotification sent to the Employee.\x1b[0m"); 

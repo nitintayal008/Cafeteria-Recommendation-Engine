@@ -71,12 +71,11 @@ export async function finalizeMenu() {
 
   const finalMenuItems = Object.entries(itemCount)
     .sort(([, countA], [, countB]) => countB - countA)
-    .slice(0, 5) // Assuming you want to select top 5 items
+    .slice(0, 5) 
     .map(([itemId]) => parseInt(itemId, 10));
 
   await menuRepository.selectNextDayMenu(finalMenuItems);
 
-  // Optionally clear choices after finalizing
   employeeChoices.clear();
 
   return finalMenuItems;
@@ -132,10 +131,8 @@ export async function rolloutFoodItem(mealTime: string, items: string[]) {
     }else{
       notificationDB.createNotification('employee', `Chef has rolled out ${items} for tomorrow's ${mealTime}.`, 1);
     }
-    // callback({ success: true });
   } catch (err) {
     console.error('Error rolling out food item:', err);
-    // callback({ success: false });
   }
 }
 
@@ -221,14 +218,11 @@ export async function sendFeedbackQuestion(data: any, callback: Function) {
 
 export async function getDiscardMenuItems(callback: Function) {
   const discardMenuItems = await menuRepository.fetchDiscardMenuItems();
-  console.log("discardedItems", discardMenuItems);
   callback({ success: true, discardMenuItems });
 } 
 
 export async function fetchDetailedFeedback(menu_item_name: any, callback: Function) {
-  console.log("nitin_menu_item_name", menu_item_name);
   const feedback = await menuRepository.fetchDetailedFeedback(menu_item_name);
-  console.log("nitin_feedback", feedback);
   if(feedback.length === 0){
     callback({ success: false, message: "No feedback found for this item." });
   }else{

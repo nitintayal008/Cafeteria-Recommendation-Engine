@@ -22,7 +22,7 @@ async function login() {
         promptUser(response.user.role);
       } else {
         console.log('Login failed:', response.message);
-        login(); // Re-prompt for login on failure
+        login(); 
       }
     });
   } catch (error) {

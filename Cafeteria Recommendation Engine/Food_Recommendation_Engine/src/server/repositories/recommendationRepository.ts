@@ -38,7 +38,6 @@ import { RatingComment, SentimentData } from '../utils/types';
     }
 
     async insertSentiments(menuItemId: number, sentiment: string, averageRating: number, score: number) {
-        console.log("i am inside insert");
         console.log(menuItemId, sentiment, averageRating, score);
         try {
             await connection.query(

@@ -496,7 +496,6 @@ async canUseFeature(usageType: string): Promise<boolean> {
 }
 
 async saveDetailedFeedback(menuItem:any , employeeId:any, question:any, feedback: any ): Promise<void> {
-  console.log("nitin_data", question, feedback, menuItem);
   try {
       const [menuItemId] = await connection.query<RowDataPacket[]>('SELECT id FROM menu_item WHERE name = ?', menuItem);
       console.log("emp_id", employeeId, menuItemId[0].id);
@@ -569,12 +568,10 @@ async checkFeedbackExists(itemname: string, employeeId: number ): Promise<boolea
     'SELECT id FROM menu_item WHERE name = ?',
     [itemname]
   );
-  console.log("nitin_menu_item_id", menu_item_id[0].id);
   const [rows] = await connection.query<RowDataPacket[]>(
     'SELECT * FROM Feedbacks_Response WHERE menu_item_id = ? AND employeeId = ?',
     [menu_item_id[0].id, employeeId]
   );
-  console.log("nitin_rows", rows);
   return rows.length > 0;
 }
 }

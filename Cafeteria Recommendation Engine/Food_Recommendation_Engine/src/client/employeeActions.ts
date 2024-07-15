@@ -88,7 +88,7 @@ function giveFeedback() {
           rl.question("Enter your comment: ", (comment) => {
             if (!isNaN(parseFloat(comment)) || comment.trim().length === 0) {
               console.log("Invalid comment. Please enter a valid string comment.");
-              askForItemId(); // Ask for item ID again
+              askForItemId(); 
               return;
             }
 
@@ -97,7 +97,7 @@ function giveFeedback() {
 
               if (isNaN(rating) || rating < 1 || rating > 5) {
                 console.log("Invalid rating. Please enter a number between 1 and 5.");
-                askForItemId(); // Ask for item ID again
+                askForItemId();
                 return;
               }
 
@@ -117,20 +117,19 @@ function giveFeedback() {
           });
         } else {
           console.log(`Menu item with ID ${itemId} does not exist. Please enter a valid item ID.`);
-          askForItemId(); // Ask for item ID again
+          askForItemId(); 
         }
       });
     });
   }
 
-  askForItemId(); // Start asking for item ID
+  askForItemId(); 
 }
 
 function getRolloutItems() {
   socket.emit("getRolloutItems", loggedInUser, (response: any) => {
-    console.log(response);
     if (response.message === 'Chef has not rolled out any items yet.') {
-      console.log(response.message); // Log the message received
+      console.log(response.message);
       promptUser("employee");
       return; 
     }
