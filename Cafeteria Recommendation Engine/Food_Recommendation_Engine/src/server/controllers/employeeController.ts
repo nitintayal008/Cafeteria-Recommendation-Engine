@@ -1,0 +1,26 @@
+
+import { Socket } from 'socket.io';
+import { checkFoodItemExistence, viewMenu } from '../services/adminService';
+import { checkFeedbackExists, checkFeedbackResponses, getRolloutItems, giveFeedback, LogLogout, nextDayMenu, saveDetailedFeedback, saveResponseForNextDay, saveSolution, updateProfile, viewDiscardedItems, viewNotification, voteFood } from '../services/employeeService';
+
+export function handleEmployeeActions(socket: Socket) {
+  socket.on('viewMenu', viewMenu);
+  socket.on('giveFeedback', giveFeedback);
+  socket.on('checkFoodItemExistence', (itemId, callback) => {
+    checkFoodItemExistence(itemId)
+      .then((exists: boolean) => callback(exists))
+      .catch(() => callback(false));
+  });
+  socket.on('nextDayMenu', nextDayMenu);
+  socket.on('saveResponseForNextDay', saveResponseForNextDay);
+  socket.on('viewNotification', viewNotification);
+  socket.on('getRolloutItems', getRolloutItems);
+  socket.on('voteFood', voteFood);
+  socket.on('viewDiscardedItems',viewDiscardedItems);
+  socket.on('saveSolution',saveSolution);
+  socket.on('checkFeedbackResponses',checkFeedbackResponses);
+  socket.on('updateProfile',updateProfile);
+  socket.on("LogLogout", LogLogout);
+  socket.on("saveDetailedFeedback", saveDetailedFeedback);
+  socket.on("checkFeedbackExists", checkFeedbackExists);
+}
